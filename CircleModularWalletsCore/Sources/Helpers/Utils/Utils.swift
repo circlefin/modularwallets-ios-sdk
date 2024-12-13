@@ -233,7 +233,7 @@ public struct Utils {
 
         let encodedAbi = self.encodeFunctionData(
             functionName: "transfer",
-            abiJson: ABI_ERC20,
+            abiJson: ERC20_ABI,
             args: abiParameters
         )
 

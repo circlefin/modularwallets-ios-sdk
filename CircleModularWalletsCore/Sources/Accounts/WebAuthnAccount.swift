@@ -86,10 +86,10 @@ public struct WebAuthnAccount: Account {
         return try await sign(hex: hex)
     }
 
-    public func signTypedData(jsonData: String) async throws -> SignResult {
-        guard let typedData = try? EIP712Parser.parse(jsonData),
-              let hash = try? typedData.signHash() else {
-            throw BaseError(shortMessage: "Failed to hash TypedData: \"\(jsonData)\"")
+    public func signTypedData(typedData: String) async throws -> SignResult {
+        guard let typedDataObj = try? EIP712Parser.parse(typedData),
+              let hash = try? typedDataObj.signHash() else {
+            throw BaseError(shortMessage: "Failed to hash TypedData: \"\(typedData)\"")
         }
 
         let hex = HexUtils.dataToHex(hash)

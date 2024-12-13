@@ -32,6 +32,7 @@ public class CircleSmartAccount<A: Account>: SmartAccount where A.T == SignResul
     public let entryPoint: EntryPoint
     let owner: A
     let wallet: Wallet
+    var deployed: Bool = false
 
     init(client: Client, owner: A, wallet: Wallet, entryPoint: EntryPoint = .v07) {
         self.client = client
@@ -71,9 +72,11 @@ public class CircleSmartAccount<A: Account>: SmartAccount where A.T == SignResul
 
     public var userOperation: UserOperationConfiguration? {
         get async {
-            let minimumVerificationGasLimit = await self.isDeployed() ?
-            MINIMUM_VERIFICATION_GAS_LIMIT : MINIMUM_UNDEPLOY_VERIFICATION_GAS_LIMIT
-            
+            let minimumVerificationGasLimit = SmartAccountUtils.getMinimumVerificationGasLimit(
+                deployed: await self.isDeployed(),
+                chainId: client.chain.chainId
+            )
+
             let config = UserOperationConfiguration { userOperation in
                 let verificationGasLimit = BigInt(minimumVerificationGasLimit)
                 let maxGasLimit = max(verificationGasLimit, userOperation.verificationGasLimit ?? BigInt(0))
@@ -181,7 +184,7 @@ public class CircleSmartAccount<A: Account>: SmartAccount where A.T == SignResul
     public func signTypedData(typedData: String) async throws -> String {
         guard let typedData = try? EIP712Parser.parse(typedData),
               let typedDataHash = try? typedData.signHash() else {
-            logger.passkeyAccount.error("jsonData signHash failure")
+            logger.passkeyAccount.error("typedData signHash failure")
             throw BaseError(shortMessage: "Failed to hash TypedData: \"\(typedData)\"")
         }
 
@@ -246,11 +249,13 @@ extension CircleSmartAccount: PublicRpcApi {
     // MARK: Internal Usage
 
     private func isDeployed() async -> Bool {
+        if deployed { return true }
         do {
             let byteCode = try await getCode(transport: client.transport,
                                              address: getAddress())
             let isEmpty = try HexUtils.hexToBytes(hex: byteCode).isEmpty
-            return !isEmpty
+            deployed = !isEmpty
+            return deployed
         } catch {
             return false
         }
