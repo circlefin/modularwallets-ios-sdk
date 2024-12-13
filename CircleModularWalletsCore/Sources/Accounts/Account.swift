@@ -23,5 +23,5 @@ public protocol Account {
     func getAddress() -> String
     func sign(hex: String) async throws -> T
     func signMessage(message: String) async throws -> T
-    func signTypedData(jsonData: String) async throws -> T
+    func signTypedData(typedData: String) async throws -> T
 }

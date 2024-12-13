@@ -73,6 +73,14 @@ public class BundlerClient: Client, BundlerRpcApi, PublicRpcApi {
         paymaster: Paymaster? = nil,
         estimateFeesPerGas: ((SmartAccount, BundlerClient, UserOperationV07) async -> EstimateFeesPerGasResult)? = nil
     ) async throws -> String? {
+        if !(partialUserOp.signature?.isEmpty ?? true) {
+            return try await self.sendUserOperation(
+                transport: transport,
+                partialUserOp: partialUserOp,
+                entryPointAddress: account.entryPoint.address
+            )
+        }
+
         let userOp = try await self.prepareUserOperation(
             transport: transport,
             account: account,
