@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2024, Circle Internet Group, Inc. All rights reserved.
+// Copyright (c) 2025, Circle Internet Group, Inc. All rights reserved.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -67,6 +67,9 @@ public struct WebAuthnCredential: RpRpcApi {
     /// Relying party identifier
     public let rpId: String
 
+    /// User name
+    public var userName: String? = nil
+
     static func register(transport: Transport,
                          userName: String) async throws -> WebAuthnCredential {
         do {
@@ -101,7 +104,8 @@ public struct WebAuthnCredential: RpRpcApi {
             return WebAuthnCredential(id: credential.id,
                                       publicKey: serializedPublicKey,
                                       raw: credential,
-                                      rpId: option.relyingParty.id)
+                                      rpId: option.relyingParty.id,
+                                      userName: userName)
         } catch let error as BaseError {
             throw error
         } catch {

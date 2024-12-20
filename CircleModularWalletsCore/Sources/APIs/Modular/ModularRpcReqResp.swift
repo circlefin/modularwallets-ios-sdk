@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2024, Circle Internet Group, Inc. All rights reserved.
+// Copyright (c) 2025, Circle Internet Group, Inc. All rights reserved.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -20,6 +20,7 @@ import Foundation
 
 public struct CreateWalletRequest: Encodable {
     let scaConfiguration: ScaConfiguration
+    let metadata: Metadata
 }
 
 public struct CreateWalletResponse: Decodable {
@@ -77,4 +78,8 @@ struct ScaConfiguration: Codable {
             }
         }
     }
+}
+
+struct Metadata: Codable {
+    let name: String?
 }

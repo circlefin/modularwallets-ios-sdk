@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2024, Circle Internet Group, Inc. All rights reserved.
+// Copyright (c) 2025, Circle Internet Group, Inc. All rights reserved.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -21,10 +21,12 @@ import BigInt
 import Web3Core
 import web3swift
 
-public func toCircleSmartAccount<A: Account>(client: Client,
-                                   owner: A,
-                                   version: String = "") async throws -> CircleSmartAccount<A> where A.T == SignResult {
-    try await .init(client: client, owner: owner)
+public func toCircleSmartAccount<A: Account>(
+    client: Client,
+    owner: A,
+    version: String = "circle_6900_v1"
+) async throws -> CircleSmartAccount<A> where A.T == SignResult {
+    try await .init(client: client, owner: owner, version: version)
 }
 
 public class CircleSmartAccount<A: Account>: SmartAccount where A.T == SignResult {
@@ -32,7 +34,8 @@ public class CircleSmartAccount<A: Account>: SmartAccount where A.T == SignResul
     public let entryPoint: EntryPoint
     let owner: A
     let wallet: Wallet
-    var deployed: Bool = false
+    private var deployed: Bool = false
+    private let nonceManager = NonceManager(source: NonceManagerSourceImpl())
 
     init(client: Client, owner: A, wallet: Wallet, entryPoint: EntryPoint = .v07) {
         self.client = client
@@ -41,7 +44,7 @@ public class CircleSmartAccount<A: Account>: SmartAccount where A.T == SignResul
         self.entryPoint = entryPoint
     }
 
-    convenience init(client: Client, owner: A) async throws {
+    convenience init(client: Client, owner: A, version: String) async throws {
         guard let buidlTransport = client.transport as? ModularTransport else {
             throw BaseError(shortMessage: "The property client.transport is not the ModularTransport")
         }
@@ -49,23 +52,12 @@ public class CircleSmartAccount<A: Account>: SmartAccount where A.T == SignResul
             throw BaseError(shortMessage: "The property owner is not the WebAuthnAccount")
         }
 
-        let (publicKeyX, publicKeyY) = Self.extractXYFromCOSE(webAuthnAccount.credential.publicKey)
-        let request = CreateWalletRequest(
-            scaConfiguration: ScaConfiguration(
-                initialOwnershipConfiguration: .init(
-                    ownershipContractAddress: nil,
-                    weightedMultiSig: .init(
-                        owners: nil,
-                        webauthnOwners: [.init(publicKeyX: publicKeyX.description,
-                                               publicKeyY: publicKeyY.description,
-                                               weight: PUBLIC_KEY_OWN_WEIGHT)],
-                        thresholdWeight: THRESHOLD_WEIGHT)
-                ),
-                scaCore: "circle_6900_v1",
-                initCode: nil)
+        let wallet = try await Self.createWallet(
+            transport: buidlTransport,
+            hexPublicKey: webAuthnAccount.credential.publicKey,
+            version: version,
+            name: webAuthnAccount.credential.userName
         )
-
-        let wallet = try await buidlTransport.circleGetAddress(transport: buidlTransport, req: request)
 
         self.init(client: client, owner: owner, wallet: wallet)
     }
@@ -118,9 +110,20 @@ public class CircleSmartAccount<A: Account>: SmartAccount where A.T == SignResul
     }
 
     public func getNonce(key: BigInt?) async throws -> BigInt {
-        return try await Utils.getNonce(transport: client.transport,
-                                        address: getAddress(),
-                                        entryPoint: entryPoint)
+        let _key = key ?? nonceManager.consume(
+            params: FunctionParameters(address: getAddress(),
+                                       chainId: client.chain.chainId)
+        )
+
+        guard _key >= BigInt(0) else {
+            throw BaseError(shortMessage: "Cannot convert negative BigInt(\(_key) to BigUInt")
+        }
+
+        let nonce = try await Utils.getNonce(transport: client.transport,
+                                             address: getAddress(),
+                                             entryPoint: entryPoint,
+                                             key: BigUInt(_key))
+        return nonce
     }
 
     public func getStubSignature<T: UserOperation>(userOp: T) -> String {
@@ -247,6 +250,34 @@ public class CircleSmartAccount<A: Account>: SmartAccount where A.T == SignResul
 extension CircleSmartAccount: PublicRpcApi {
 
     // MARK: Internal Usage
+
+    static func createWallet(
+        transport: ModularTransport,
+        hexPublicKey: String,
+        version: String,
+        name: String? = nil
+    ) async throws -> Wallet {
+        let (publicKeyX, publicKeyY) = Self.extractXYFromCOSE(hexPublicKey)
+        let request = CreateWalletRequest(
+            scaConfiguration: ScaConfiguration(
+                initialOwnershipConfiguration: .init(
+                    ownershipContractAddress: nil,
+                    weightedMultiSig: .init(
+                        owners: nil,
+                        webauthnOwners: [.init(publicKeyX: publicKeyX.description,
+                                               publicKeyY: publicKeyY.description,
+                                               weight: PUBLIC_KEY_OWN_WEIGHT)],
+                        thresholdWeight: THRESHOLD_WEIGHT)
+                ),
+                scaCore: version,
+                initCode: nil),
+            metadata: .init(name: name)
+        )
+
+        let wallet = try await transport.circleGetAddress(transport: transport, req: request)
+
+        return wallet
+    }
 
     private func isDeployed() async -> Bool {
         if deployed { return true }
