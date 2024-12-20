@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2024, Circle Internet Group, Inc. All rights reserved.
+// Copyright (c) 2025, Circle Internet Group, Inc. All rights reserved.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -21,7 +21,7 @@ import Foundation
 #if SWIFT_PACKAGE
 extension Bundle {
     public enum SDK {
-        public static let version = "1.0.3"
+        public static let version = "1.0.4"
     }
 }
 #else

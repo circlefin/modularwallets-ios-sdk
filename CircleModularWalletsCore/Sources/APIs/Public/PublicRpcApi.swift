@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2024, Circle Internet Group, Inc. All rights reserved.
+// Copyright (c) 2025, Circle Internet Group, Inc. All rights reserved.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -57,7 +57,7 @@ protocol PublicRpcApi {
     /// - Returns: EstimateFeesPerGasResult
     func estimateFeesPerGas(transport: Transport, feeValuesType: FeeValuesType) async throws -> EstimateFeesPerGasResult
 
-    /** Returns the current price of gas (in wei) */
+    /// Returns the current price of gas (in wei)
     func getGasPrice(transport: Transport) async throws -> BigInt
 }
 
