@@ -54,7 +54,10 @@ struct HexUtils {
         return BigInt(hex.noHexPrefix, radix: 16)
     }
 
-    static func bigIntToHex(_ bigInt: BigInt, withPrefix: Bool = true) -> String {
+    static func bigIntToHex(_ bigInt: BigInt, withPrefix: Bool = true) throws -> String {
+        if bigInt.sign == .minus {
+            throw IntegerOutOfRangeError()
+        }
         let hex = BigUInt(bigInt).hexString
         return withPrefix ? hex : hex.noHexPrefix
     }
