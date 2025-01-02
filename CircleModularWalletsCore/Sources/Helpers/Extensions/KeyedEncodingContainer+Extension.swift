@@ -23,7 +23,7 @@ extension KeyedEncodingContainer {
 
     mutating func encodeBigInt(_ value: BigInt?, forKey key: KeyedEncodingContainer<K>.Key) throws {
         if let value {
-            let hexString = HexUtils.bigIntToHex(value)
+            let hexString = try HexUtils.bigIntToHex(value)
             try self.encodeIfPresent(hexString, forKey: key)
         }
     }

@@ -218,7 +218,7 @@ public class CircleSmartAccount<A: Account>: SmartAccount where A.T == SignResul
 
     public func signUserOperation(chainId: Int, userOp: UserOperationV07) async throws -> String {
         userOp.sender = getAddress()
-        let userOpHash = Utils.getUserOperationHash(
+        let userOpHash = try Utils.getUserOperationHash(
             chainId: chainId,
             entryPointAddress: EntryPoint.v07.address,
             userOp: userOp

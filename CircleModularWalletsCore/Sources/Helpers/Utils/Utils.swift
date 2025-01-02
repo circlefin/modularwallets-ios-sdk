@@ -107,15 +107,15 @@ public struct Utils {
         chainId: Int,
         entryPointAddress: String = ENTRYPOINT_V07_ADDRESS,
         userOp: UserOperationV07
-    ) -> String {
+    ) throws -> String {
 
         var accountGasLimits = [UInt8]()
         if let verificationGasLimit = userOp.verificationGasLimit,
            let callGasLimit = userOp.callGasLimit {
 
-            let verificationGasLimitHex = HexUtils.bigIntToHex(verificationGasLimit, withPrefix: false)
+            let verificationGasLimitHex = try HexUtils.bigIntToHex(verificationGasLimit, withPrefix: false)
             let verificationGasLimitHexWithPadding = verificationGasLimitHex.leftPadding(toLength: 32, withPad: "0")
-            let callGasLimitHex = HexUtils.bigIntToHex(callGasLimit, withPrefix: false)
+            let callGasLimitHex = try HexUtils.bigIntToHex(callGasLimit, withPrefix: false)
             let callGasLimitHexWithPadding = callGasLimitHex.leftPadding(toLength: 32, withPad: "0")
             let finalHex = verificationGasLimitHexWithPadding + callGasLimitHexWithPadding
 
@@ -134,9 +134,9 @@ public struct Utils {
         if let maxPriorityFeePerGas = userOp.maxPriorityFeePerGas,
            let maxFeePerGas = userOp.maxFeePerGas {
 
-            let maxPriorityFeePerGasHex = HexUtils.bigIntToHex(maxPriorityFeePerGas, withPrefix: false)
+            let maxPriorityFeePerGasHex = try HexUtils.bigIntToHex(maxPriorityFeePerGas, withPrefix: false)
             let maxPriorityFeePerGasHexWithPadding = maxPriorityFeePerGasHex.leftPadding(toLength: 32, withPad: "0")
-            let maxFeePerGasHex = HexUtils.bigIntToHex(maxFeePerGas, withPrefix: false)
+            let maxFeePerGasHex = try HexUtils.bigIntToHex(maxFeePerGas, withPrefix: false)
             let maxFeePerGasHexWithPadding = maxFeePerGasHex.leftPadding(toLength: 32, withPad: "0")
             let finalHex = maxPriorityFeePerGasHexWithPadding + maxFeePerGasHexWithPadding
 
@@ -161,11 +161,11 @@ public struct Utils {
         if let paymaster = userOp.paymaster {
 
             let paymasterVerificationGasLimit = userOp.paymasterVerificationGasLimit ?? BigInt.zero
-            let verificationGasLimitHex = HexUtils.bigIntToHex(paymasterVerificationGasLimit, withPrefix: false)
+            let verificationGasLimitHex = try HexUtils.bigIntToHex(paymasterVerificationGasLimit, withPrefix: false)
             let verificationGasLimitHexWithPadding = verificationGasLimitHex.leftPadding(toLength: 32, withPad: "0")
 
             let paymasterPostOpGasLimit = userOp.paymasterPostOpGasLimit ?? BigInt.zero
-            let postOpGasLimitHex = HexUtils.bigIntToHex(paymasterPostOpGasLimit, withPrefix: false)
+            let postOpGasLimitHex = try HexUtils.bigIntToHex(paymasterPostOpGasLimit, withPrefix: false)
             let postOpGasLimitHexWithPadding = postOpGasLimitHex.leftPadding(toLength: 32, withPad: "0")
 
             let paymasterData = userOp.paymasterData?.noHexPrefix ?? ""
