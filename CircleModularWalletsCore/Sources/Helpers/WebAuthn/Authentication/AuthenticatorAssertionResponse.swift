@@ -49,74 +49,74 @@ public struct AuthenticatorAssertionResponse: AuthenticatorResponse, Encodable, 
     public let userHandle: URLEncodedBase64?
 }
 
-struct ParsedAuthenticatorAssertionResponse: Sendable {
-    let rawClientData: [UInt8]
-    let clientData: CollectedClientData
-    let rawAuthenticatorData: [UInt8]
-    let authenticatorData: AuthenticatorData
-    let signature: URLEncodedBase64
-    let userHandle: [UInt8]?
-
-    init(from authenticatorAssertionResponse: AuthenticatorAssertionResponse) throws {
-
-        if let rawClientData =  authenticatorAssertionResponse.clientDataJSON.decodedBytes {
-            self.rawClientData = rawClientData
-        } else {
-            self.rawClientData = []
-        }
-
-        clientData = try JSONDecoder().decode(CollectedClientData.self, from: Data(rawClientData))
-
-        if let rawAuthenticatorData = authenticatorAssertionResponse.authenticatorData.decodedBytes {
-            self.rawAuthenticatorData = rawAuthenticatorData
-        } else {
-            self.rawAuthenticatorData = []
-        }
-
-        authenticatorData = try AuthenticatorData(bytes: self.rawAuthenticatorData)
-        signature = authenticatorAssertionResponse.signature
-        userHandle = authenticatorAssertionResponse.userHandle?.decodedBytes
-    }
-
-    // swiftlint:disable:next function_parameter_count
-    func verify(
-        expectedChallenge: [UInt8],
-        relyingPartyOrigin: String,
-        relyingPartyID: String,
-        requireUserVerification: Bool,
-        credentialPublicKey: [UInt8],
-        credentialCurrentSignCount: UInt32
-    ) throws {
-        try clientData.verify(
-            storedChallenge: expectedChallenge,
-            ceremonyType: .assert,
-            relyingPartyOrigin: relyingPartyOrigin
-        )
-
-        let expectedRelyingPartyIDData = Data(relyingPartyID.utf8)
-        let expectedRelyingPartyIDHash = SHA256.hash(data: expectedRelyingPartyIDData)
-        guard expectedRelyingPartyIDHash == authenticatorData.relyingPartyIDHash else {
-            throw WebAuthnError.relyingPartyIDHashDoesNotMatch
-        }
-
-        guard authenticatorData.flags.userPresent else { throw WebAuthnError.userPresentFlagNotSet }
-        if requireUserVerification {
-            guard authenticatorData.flags.userVerified else { throw WebAuthnError.userVerifiedFlagNotSet }
-        }
-
-        if authenticatorData.counter > 0 || credentialCurrentSignCount > 0 {
-            guard authenticatorData.counter > credentialCurrentSignCount else {
-                // This is a signal that the authenticator may be cloned, i.e. at least two copies of the credential
-                // private key may exist and are being used in parallel.
-                throw WebAuthnError.potentialReplayAttack
-            }
-        }
-
-        let clientDataHash = SHA256.hash(data: rawClientData)
-        let signatureBase = rawAuthenticatorData + clientDataHash
-
-        let credentialPublicKey = try CredentialPublicKey(publicKeyBytes: credentialPublicKey)
-        guard let signatureData = signature.urlDecoded.decoded else { throw WebAuthnError.invalidSignature }
-        try credentialPublicKey.verify(signature: signatureData, data: signatureBase)
-    }
-}
+//struct ParsedAuthenticatorAssertionResponse: Sendable {
+//    let rawClientData: [UInt8]
+//    let clientData: CollectedClientData
+//    let rawAuthenticatorData: [UInt8]
+//    let authenticatorData: AuthenticatorData
+//    let signature: URLEncodedBase64
+//    let userHandle: [UInt8]?
+//
+//    init(from authenticatorAssertionResponse: AuthenticatorAssertionResponse) throws {
+//
+//        if let rawClientData =  authenticatorAssertionResponse.clientDataJSON.decodedBytes {
+//            self.rawClientData = rawClientData
+//        } else {
+//            self.rawClientData = []
+//        }
+//
+//        clientData = try JSONDecoder().decode(CollectedClientData.self, from: Data(rawClientData))
+//
+//        if let rawAuthenticatorData = authenticatorAssertionResponse.authenticatorData.decodedBytes {
+//            self.rawAuthenticatorData = rawAuthenticatorData
+//        } else {
+//            self.rawAuthenticatorData = []
+//        }
+//
+//        authenticatorData = try AuthenticatorData(bytes: self.rawAuthenticatorData)
+//        signature = authenticatorAssertionResponse.signature
+//        userHandle = authenticatorAssertionResponse.userHandle?.decodedBytes
+//    }
+//
+//    // swiftlint:disable:next function_parameter_count
+//    func verify(
+//        expectedChallenge: [UInt8],
+//        relyingPartyOrigin: String,
+//        relyingPartyID: String,
+//        requireUserVerification: Bool,
+//        credentialPublicKey: [UInt8],
+//        credentialCurrentSignCount: UInt32
+//    ) throws {
+//        try clientData.verify(
+//            storedChallenge: expectedChallenge,
+//            ceremonyType: .assert,
+//            relyingPartyOrigin: relyingPartyOrigin
+//        )
+//
+//        let expectedRelyingPartyIDData = Data(relyingPartyID.utf8)
+//        let expectedRelyingPartyIDHash = SHA256.hash(data: expectedRelyingPartyIDData)
+//        guard expectedRelyingPartyIDHash == authenticatorData.relyingPartyIDHash else {
+//            throw WebAuthnError.relyingPartyIDHashDoesNotMatch
+//        }
+//
+//        guard authenticatorData.flags.userPresent else { throw WebAuthnError.userPresentFlagNotSet }
+//        if requireUserVerification {
+//            guard authenticatorData.flags.userVerified else { throw WebAuthnError.userVerifiedFlagNotSet }
+//        }
+//
+//        if authenticatorData.counter > 0 || credentialCurrentSignCount > 0 {
+//            guard authenticatorData.counter > credentialCurrentSignCount else {
+//                // This is a signal that the authenticator may be cloned, i.e. at least two copies of the credential
+//                // private key may exist and are being used in parallel.
+//                throw WebAuthnError.potentialReplayAttack
+//            }
+//        }
+//
+//        let clientDataHash = SHA256.hash(data: rawClientData)
+//        let signatureBase = rawAuthenticatorData + clientDataHash
+//
+//        let credentialPublicKey = try CredentialPublicKey(publicKeyBytes: credentialPublicKey)
+//        guard let signatureData = signature.urlDecoded.decoded else { throw WebAuthnError.invalidSignature }
+//        try credentialPublicKey.verify(signature: signatureData, data: signatureBase)
+//    }
+//}

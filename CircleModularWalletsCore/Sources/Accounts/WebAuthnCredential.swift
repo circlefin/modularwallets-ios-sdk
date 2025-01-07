@@ -67,9 +67,6 @@ public struct WebAuthnCredential: RpRpcApi {
     /// Relying party identifier
     public let rpId: String
 
-    /// User name
-    public var userName: String? = nil
-
     static func register(transport: Transport,
                          userName: String) async throws -> WebAuthnCredential {
         do {
@@ -99,13 +96,12 @@ public struct WebAuthnCredential: RpRpcApi {
             }
 
             /// After the server verifies the registration and creates the user account, sign in the user with the new account.
-            /// Step 4. parse and serialized public key
+            /// Step 4. Parse and serialized public key
             let serializedPublicKey = HexUtils.bytesToHex(publicKey.decodedBytes)
             return WebAuthnCredential(id: credential.id,
                                       publicKey: serializedPublicKey,
                                       raw: credential,
-                                      rpId: option.relyingParty.id,
-                                      userName: userName)
+                                      rpId: option.relyingParty.id)
         } catch let error as BaseError {
             throw error
         } catch {
@@ -135,7 +131,7 @@ public struct WebAuthnCredential: RpRpcApi {
             )
 
             /// After the server verifies the assertion, sign in the user.
-            /// Step 4. parse and serialized public key
+            /// Step 4. Parse and serialized public key
             let coseKey = try Utils.pemToCOSE(pemKey: loginResult.publicKey)
             let serializedPublicKey = HexUtils.bytesToHex(coseKey)
             return WebAuthnCredential(id: credential.id,

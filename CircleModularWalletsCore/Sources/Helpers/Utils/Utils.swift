@@ -789,6 +789,15 @@ extension Utils {
 
         return EIP1271_VALID_SIGNATURE == magicValue.bytes
     }
+
+    static func getCurrentDateTime() -> String {
+        let dateFormatter = ISO8601DateFormatter()
+        dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+
+        let currentDate = Date()
+        return dateFormatter.string(from: currentDate)
+    }
 }
 
 extension Utils: PublicRpcApi {

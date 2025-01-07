@@ -30,9 +30,9 @@ extension String {
 
 extension StringProtocol {
 
-    func index<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> Index? {
-        range(of: string, options: options)?.lowerBound
-    }
+//    func index<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> Index? {
+//        range(of: string, options: options)?.lowerBound
+//    }
 
     func index<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> Int? {
         guard let endIndex = range(of: string, options: options)?.lowerBound else {
@@ -42,32 +42,32 @@ extension StringProtocol {
         return self.distance(from: self.startIndex, to: endIndex)
     }
 
-    func endIndex<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> Index? {
-        range(of: string, options: options)?.upperBound
-    }
+//    func endIndex<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> Index? {
+//        range(of: string, options: options)?.upperBound
+//    }
 
-    func endIndex<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> Int? {
-        guard let endIndex = range(of: string, options: options)?.upperBound else {
-            return nil
-        }
+//    func endIndex<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> Int? {
+//        guard let endIndex = range(of: string, options: options)?.upperBound else {
+//            return nil
+//        }
+//
+//        return self.distance(from: self.startIndex, to: endIndex)
+//    }
 
-        return self.distance(from: self.startIndex, to: endIndex)
-    }
-
-    func indices<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> [Index] {
-        ranges(of: string, options: options).map(\.lowerBound)
-    }
+//    func indices<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> [Index] {
+//        ranges(of: string, options: options).map(\.lowerBound)
+//    }
     
-    func ranges<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> [Range<Index>] {
-        var result: [Range<Index>] = []
-        var startIndex = self.startIndex
-        while startIndex < endIndex,
-            let range = self[startIndex...]
-                .range(of: string, options: options) {
-                result.append(range)
-                startIndex = range.lowerBound < range.upperBound ? range.upperBound :
-                    index(range.lowerBound, offsetBy: 1, limitedBy: endIndex) ?? endIndex
-        }
-        return result
-    }
+//    func ranges<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> [Range<Index>] {
+//        var result: [Range<Index>] = []
+//        var startIndex = self.startIndex
+//        while startIndex < endIndex,
+//            let range = self[startIndex...]
+//                .range(of: string, options: options) {
+//                result.append(range)
+//                startIndex = range.lowerBound < range.upperBound ? range.upperBound :
+//                    index(range.lowerBound, offsetBy: 1, limitedBy: endIndex) ?? endIndex
+//        }
+//        return result
+//    }
 }

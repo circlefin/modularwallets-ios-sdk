@@ -84,23 +84,23 @@ public struct PublicKeyCredentialCreationOptions: Codable, Sendable {
         case attestation
     }
 
-    init(challenge: URLEncodedBase64,
-         relyingParty: PublicKeyCredentialRelyingPartyEntity,
-         publicKeyCredentialParameters: [PublicKeyCredentialParameters],
-         user: PublicKeyCredentialUserEntity,
-         authenticatorSelectionCriteria: AuthenticatorSelectionCriteria? = nil,
-         timeout: Duration? = nil,
-         excludeCredentials: [PublicKeyCredentialDescriptor]? = nil,
-         attestation: String? = nil) {
-        self.challenge = challenge
-        self.relyingParty = relyingParty
-        self.publicKeyCredentialParameters = publicKeyCredentialParameters
-        self.user = user
-        self.authenticatorSelectionCriteria = authenticatorSelectionCriteria
-        self.timeout = timeout
-        self.excludeCredentials = excludeCredentials
-        self.attestation = attestation
-    }
+//    init(challenge: URLEncodedBase64,
+//         relyingParty: PublicKeyCredentialRelyingPartyEntity,
+//         publicKeyCredentialParameters: [PublicKeyCredentialParameters],
+//         user: PublicKeyCredentialUserEntity,
+//         authenticatorSelectionCriteria: AuthenticatorSelectionCriteria? = nil,
+//         timeout: Duration? = nil,
+//         excludeCredentials: [PublicKeyCredentialDescriptor]? = nil,
+//         attestation: String? = nil) {
+//        self.challenge = challenge
+//        self.relyingParty = relyingParty
+//        self.publicKeyCredentialParameters = publicKeyCredentialParameters
+//        self.user = user
+//        self.authenticatorSelectionCriteria = authenticatorSelectionCriteria
+//        self.timeout = timeout
+//        self.excludeCredentials = excludeCredentials
+//        self.attestation = attestation
+//    }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)

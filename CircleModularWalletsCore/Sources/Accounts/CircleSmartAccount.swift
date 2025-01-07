@@ -21,12 +21,25 @@ import BigInt
 import Web3Core
 import web3swift
 
+/// Creates a Circle smart account.
+///
+/// - Parameters:
+///   - client: The client used to interact with the blockchain.
+///   - owner: The owner account associated with the Circle smart account.
+///   - version: The version of the Circle smart account. Default is "circle_6900_v1".
+///   - name: The wallet name assigned to the newly registered account defaults to the format "passkey-yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+///
+/// - Throws: BaseError if there are any problems during the wallet creation process.
+///
+/// - Returns: The created Circle smart account.
 public func toCircleSmartAccount<A: Account>(
     client: Client,
     owner: A,
-    version: String = "circle_6900_v1"
+    version: String = "circle_6900_v1",
+    name: String? = nil
 ) async throws -> CircleSmartAccount<A> where A.T == SignResult {
-    try await .init(client: client, owner: owner, version: version)
+    let name = name ?? "passkey-\(Utils.getCurrentDateTime())"
+    return try await .init(client: client, owner: owner, version: version, name: name)
 }
 
 public class CircleSmartAccount<A: Account>: SmartAccount where A.T == SignResult {
@@ -44,7 +57,7 @@ public class CircleSmartAccount<A: Account>: SmartAccount where A.T == SignResul
         self.entryPoint = entryPoint
     }
 
-    convenience init(client: Client, owner: A, version: String) async throws {
+    convenience init(client: Client, owner: A, version: String, name: String?) async throws {
         guard let buidlTransport = client.transport as? ModularTransport else {
             throw BaseError(shortMessage: "The property client.transport is not the ModularTransport")
         }
@@ -56,7 +69,7 @@ public class CircleSmartAccount<A: Account>: SmartAccount where A.T == SignResul
             transport: buidlTransport,
             hexPublicKey: webAuthnAccount.credential.publicKey,
             version: version,
-            name: webAuthnAccount.credential.userName
+            name: name
         )
 
         self.init(client: client, owner: owner, wallet: wallet)
@@ -84,10 +97,10 @@ public class CircleSmartAccount<A: Account>: SmartAccount where A.T == SignResul
         }
     }
 
-    static func create(url: String, apiKey: String, client: Client, owner: A) -> CircleSmartAccount {
-        let account = CircleSmartAccount(client: client, owner: owner, wallet: Wallet())
-        return account
-    }
+//    static func create(url: String, apiKey: String, client: Client, owner: A) -> CircleSmartAccount {
+//        let account = CircleSmartAccount(client: client, owner: owner, wallet: Wallet())
+//        return account
+//    }
 
     public func getAddress() -> String {
         return wallet.address ?? ""
