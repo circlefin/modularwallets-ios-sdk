@@ -58,8 +58,9 @@ public class HttpTransport: Transport {
 extension HttpTransport {
 
     func send<T: Decodable>(_ urlRequest: URLRequest) async throws -> T {
+        var data: Data = .init(), response: URLResponse?
         do {
-            let (data, response) = try await session.data(for: urlRequest)
+            (data, response) = try await session.data(for: urlRequest)
             try processResponse(data: data, response: response)
 
             if let errorResult = try? decodeData(data: data) as JsonRpcErrorResult {
@@ -72,6 +73,8 @@ extension HttpTransport {
                 return try decodeData(data: data) as T
             }
 
+        } catch let error as BaseError {
+            throw error
         } catch let error as HttpError {
             var _details: String?
             var _cause: Error?
@@ -85,7 +88,12 @@ extension HttpTransport {
                 _details = "Decoding Failed."
                 _cause = error
             case .unknownError(let statusCode):
-                _details = "Request failed: \(statusCode)"
+                if let errorResult = try? decodeData(data: data) as JsonRpcErrorResult {
+                    _details = errorResult.error.message
+                } else {
+                    let message = String(data: data, encoding: .utf8) ?? ""
+                    _details = "Request failed: \(message)"
+                }
                 _statusCode = statusCode
             default:
                 _details = String(describing: error)
