@@ -122,8 +122,8 @@ extension Data {
     }
 }
 
-extension String {
-    func toBase64() -> EncodedBase64 {
-        return .init(Data(self.utf8).base64EncodedString())
-    }
-}
+//extension String {
+//    func toBase64() -> EncodedBase64 {
+//        return .init(Data(self.utf8).base64EncodedString())
+//    }
+//}

@@ -187,21 +187,21 @@ struct RSAPublicKeyData: PublicKey, Sendable {
 
     var rawRepresentation: [UInt8] { n + e }
 
-    init(publicKeyObject: CBOR, algorithm: COSEAlgorithmIdentifier) throws {
-        self.algorithm = algorithm
-
-        guard let nRaw = publicKeyObject[COSEKey.n.cbor],
-              case let .byteString(nBytes) = nRaw else {
-            throw WebAuthnError.invalidModulus
-        }
-        n = nBytes
-
-        guard let eRaw = publicKeyObject[COSEKey.e.cbor],
-              case let .byteString(eBytes) = eRaw else {
-            throw WebAuthnError.invalidExponent
-        }
-        e = eBytes
-    }
+//    init(publicKeyObject: CBOR, algorithm: COSEAlgorithmIdentifier) throws {
+//        self.algorithm = algorithm
+//
+//        guard let nRaw = publicKeyObject[COSEKey.n.cbor],
+//              case let .byteString(nBytes) = nRaw else {
+//            throw WebAuthnError.invalidModulus
+//        }
+//        n = nBytes
+//
+//        guard let eRaw = publicKeyObject[COSEKey.e.cbor],
+//              case let .byteString(eBytes) = eRaw else {
+//            throw WebAuthnError.invalidExponent
+//        }
+//        e = eBytes
+//    }
 
     func verify(signature: some DataProtocol, data: some DataProtocol) throws {
         throw WebAuthnError.unsupported
@@ -233,20 +233,20 @@ struct OKPPublicKey: PublicKey, Sendable {
     let curve: UInt64
     let xCoordinate: [UInt8]
 
-    init(publicKeyObject: CBOR, algorithm: COSEAlgorithmIdentifier) throws {
-        self.algorithm = algorithm
-        // Curve is key -1, or NegativeInt 0 for SwiftCBOR
-        guard let curveRaw = publicKeyObject[.negativeInt(0)], case let .unsignedInt(curve) = curveRaw else {
-            throw WebAuthnError.invalidCurve
-        }
-        self.curve = curve
-        // X Coordinate is key -2, or NegativeInt 1 for SwiftCBOR
-        guard let xCoordRaw = publicKeyObject[.negativeInt(1)],
-            case let .byteString(xCoordinateBytes) = xCoordRaw else {
-            throw WebAuthnError.invalidXCoordinate
-        }
-        xCoordinate = xCoordinateBytes
-    }
+//    init(publicKeyObject: CBOR, algorithm: COSEAlgorithmIdentifier) throws {
+//        self.algorithm = algorithm
+//        // Curve is key -1, or NegativeInt 0 for SwiftCBOR
+//        guard let curveRaw = publicKeyObject[.negativeInt(0)], case let .unsignedInt(curve) = curveRaw else {
+//            throw WebAuthnError.invalidCurve
+//        }
+//        self.curve = curve
+//        // X Coordinate is key -2, or NegativeInt 1 for SwiftCBOR
+//        guard let xCoordRaw = publicKeyObject[.negativeInt(1)],
+//            case let .byteString(xCoordinateBytes) = xCoordRaw else {
+//            throw WebAuthnError.invalidXCoordinate
+//        }
+//        xCoordinate = xCoordinateBytes
+//    }
 
     func verify(signature: some DataProtocol, data: some DataProtocol) throws {
         throw WebAuthnError.unsupported

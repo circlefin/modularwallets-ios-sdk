@@ -42,8 +42,8 @@ extension FixedWidthInteger {
 
     /// Initialize a fixed width integer from a contiguous sequence of Bytes representing a little endian type.
     /// - Parameter bigEndianBytes: The Bytes to interpret as a little endian integer.
-    @inlinable
-    init(littleEndianBytes: some BidirectionalCollection<UInt8>) {
-        self.init(littleEndian: littleEndianBytes.casting())
-    }
+//    @inlinable
+//    init(littleEndianBytes: some BidirectionalCollection<UInt8>) {
+//        self.init(littleEndian: littleEndianBytes.casting())
+//    }
 }

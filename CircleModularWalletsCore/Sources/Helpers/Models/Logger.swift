@@ -51,21 +51,21 @@ extension Logger {
     static let passkeyAccount = Logger(subsystem: appIdentifier, category: "passkeyAccount")
 }
 
-extension Logger {
-    
-    func divider(level: OSLogType = .debug) {
-        self.log(level: level, "∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞")
-    }
-
-    func prettyPrinted(level: OSLogType = .debug, _ object: Encodable) {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted
-
-        guard let data = try? encoder.encode(object),
-                let jsonString = String(data: data, encoding: .utf8) else {
-            self.debug("Invalid JSON object")
-            return
-        }
-        self.log(level: level, "\(jsonString)")
-    }
-}
+//extension Logger {
+//    
+//    func divider(level: OSLogType = .debug) {
+//        self.log(level: level, "∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞∞")
+//    }
+//
+//    func prettyPrinted(level: OSLogType = .debug, _ object: Encodable) {
+//        let encoder = JSONEncoder()
+//        encoder.outputFormatting = .prettyPrinted
+//
+//        guard let data = try? encoder.encode(object),
+//                let jsonString = String(data: data, encoding: .utf8) else {
+//            self.debug("Invalid JSON object")
+//            return
+//        }
+//        self.log(level: level, "\(jsonString)")
+//    }
+//}
