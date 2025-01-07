@@ -21,7 +21,7 @@ import Foundation
 #if SWIFT_PACKAGE
 extension Bundle {
     public enum SDK {
-        public static let version = "1.0.5"
+        public static let version = "1.0.6"
     }
 }
 #else

@@ -120,11 +120,22 @@ extension WebAuthnHandler: ASAuthorizationControllerDelegate {
             // The attestationObject contains the user's new public key to store and use for subsequent sign-ins.
             let attestationObjectData = asCredentialRegistration.rawAttestationObject
             let clientDataJSON = asCredentialRegistration.rawClientDataJSON
+            var attachment: AuthenticatorAttachment = .platform
+            if #available(iOS 16.6, *) {
+                switch asCredentialRegistration.attachment {
+                case .platform:
+                    attachment = .platform
+                case .crossPlatform:
+                    attachment = .crossPlatform
+                @unknown default:
+                    attachment = .platform
+                }
+            }
 
             let credential = RegistrationCredential(
                 id: asCredentialRegistration.credentialID.base64URLEncodedString().asString(),
                 type: CredentialType.publicKey,
-                authenticatorAttachment: .platform,
+                authenticatorAttachment: attachment,
                 rawID: asCredentialRegistration.credentialID.base64URLEncodedString(),
                 response: AuthenticatorAttestationResponse(
                     rawClientDataJSON: clientDataJSON.bytes,
@@ -144,11 +155,22 @@ extension WebAuthnHandler: ASAuthorizationControllerDelegate {
             let signature = asCredentialAssertion.signature
             let clientDataJSON = asCredentialAssertion.rawClientDataJSON
             let authenticatorData = asCredentialAssertion.rawAuthenticatorData
+            var attachment: AuthenticatorAttachment = .platform
+            if #available(iOS 16.6, *) {
+                switch asCredentialAssertion.attachment {
+                case .platform:
+                    attachment = .platform
+                case .crossPlatform:
+                    attachment = .crossPlatform
+                @unknown default:
+                    attachment = .platform
+                }
+            }
 
             let credential = AuthenticationCredential(
                 id: asCredentialAssertion.credentialID.base64URLEncodedString().asString(),
                 type: CredentialType.publicKey,
-                authenticatorAttachment: .platform,
+                authenticatorAttachment: attachment,
                 rawID: asCredentialAssertion.credentialID.base64URLEncodedString(),
                 response: AuthenticatorAssertionResponse(
                     clientDataJSON: clientDataJSON.bytes.base64URLEncodedString(),

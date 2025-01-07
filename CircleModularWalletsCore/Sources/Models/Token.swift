@@ -45,7 +45,7 @@ public enum MainnetToken: String {
     }
     
     public var name: String {
-        return "\(Mainnet.chainId)_\(self.rawValue)"
+        return "Mainnet_\(self.rawValue)"
     }
 }
 
@@ -75,7 +75,7 @@ public enum PolygonToken: String {
     }
     
     public var name: String {
-        return "\(Polygon.chainId)_\(self.rawValue)"
+        return "Polygon_\(self.rawValue)"
     }
 }
 
@@ -106,7 +106,7 @@ public enum ArbitrumToken: String {
     }
     
     public var name: String {
-        return "\(Arbitrum.chainId)_\(self.rawValue)"
+        return "Arbitrum_\(self.rawValue)"
     }
 }
 
@@ -118,7 +118,7 @@ public enum SepoliaToken: String {
     }
     
     public var name: String {
-        return "\(Sepolia.chainId)_\(self.rawValue)"
+        return "Sepolia_\(self.rawValue)"
     }
 }
 
@@ -130,7 +130,7 @@ public enum PolygonAmoyToken: String {
     }
     
     public var name: String {
-        return "\(PolygonAmoy.chainId)_\(self.rawValue)"
+        return "PolygonAmoy_\(self.rawValue)"
     }
 }
 
@@ -142,6 +142,6 @@ public enum ArbitrumSepoliaToken: String {
     }
     
     public var name: String {
-        return "\(ArbitrumSepolia.chainId)_\(self.rawValue)"
+        return "ArbitrumSepolia_\(self.rawValue)"
     }
 }
