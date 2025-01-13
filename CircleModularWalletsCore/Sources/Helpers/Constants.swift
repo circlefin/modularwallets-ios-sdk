@@ -20,6 +20,11 @@ import Foundation
 
 public let CIRCLE_BASE_URL = "https://modular-sdk.circle.com/v1/rpc/w3s/buidl"
 public let ENTRYPOINT_V07_ADDRESS = "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
+public let CIRCLE_SMART_ACCOUNT_VERSION_V1 = "circle_passkey_account_v1"
+
+let CIRCLE_SMART_ACCOUNT_VERSION: [String: String] = [
+    CIRCLE_SMART_ACCOUNT_VERSION_V1: "circle_6900_v1",
+]
 
 let CONTRACT_ADDRESS: [String: String] = [
     MainnetToken.USDT.name: "0xdAC17F958D2ee523a2206206994597C13D831ec7",

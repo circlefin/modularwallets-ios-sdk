@@ -26,7 +26,7 @@ import web3swift
 /// - Parameters:
 ///   - client: The client used to interact with the blockchain.
 ///   - owner: The owner account associated with the Circle smart account.
-///   - version: The version of the Circle smart account. Default is "circle_6900_v1".
+///   - version: The version of the Circle smart account. Default is CIRCLE_SMART_ACCOUNT_VERSION_V1.
 ///   - name: The wallet name assigned to the newly registered account defaults to the format "passkey-yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
 ///
 /// - Throws: BaseError if there are any problems during the wallet creation process.
@@ -35,9 +35,10 @@ import web3swift
 public func toCircleSmartAccount<A: Account>(
     client: Client,
     owner: A,
-    version: String = "circle_6900_v1",
+    version: String = CIRCLE_SMART_ACCOUNT_VERSION_V1,
     name: String? = nil
 ) async throws -> CircleSmartAccount<A> where A.T == SignResult {
+    let version = CIRCLE_SMART_ACCOUNT_VERSION[version] ?? version
     let name = name ?? "passkey-\(Utils.getCurrentDateTime())"
     return try await .init(client: client, owner: owner, version: version, name: name)
 }
