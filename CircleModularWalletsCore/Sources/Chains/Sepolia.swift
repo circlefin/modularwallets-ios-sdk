@@ -18,12 +18,12 @@
 
 import Foundation
 
-let Sepolia = _Sepolia()
+public let Sepolia = _Sepolia()
 
-struct _Sepolia: Chain {
+public struct _Sepolia: Chain {
 
-    let chainId: Int = 11155111
+    public let chainId: Int = 11155111
 
-    let blockchain: String = "ETH-SEPOLIA"
+    public let blockchain: String = "ETH-SEPOLIA"
 
 }

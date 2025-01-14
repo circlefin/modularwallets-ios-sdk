@@ -19,21 +19,15 @@
 import Foundation
 
 protocol ModularRpcApi {
-    
-    func circleGetAddress(
-        transport: Transport,
-        req: CreateWalletRequest
-    ) async throws -> Wallet
+
+    func getAddress(transport: Transport, req: GetAddressReq) async throws -> ModularWallet
 }
 
 extension ModularRpcApi {
 
-    func circleGetAddress(
-        transport: Transport,
-        req: CreateWalletRequest
-    ) async throws -> Wallet {
+    func getAddress(transport: Transport, req: GetAddressReq) async throws -> ModularWallet {
         let req = RpcRequest(method: "circle_getAddress", params: [req])
-        let response = try await transport.request(req) as RpcResponse<Wallet>
+        let response = try await transport.request(req) as RpcResponse<ModularWallet>
         return response.result
     }
 }

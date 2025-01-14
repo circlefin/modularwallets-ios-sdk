@@ -21,7 +21,7 @@ import Foundation
 public class Paymaster {
 
     public class True: Paymaster {
-        let paymasterContext: [String: AnyEncodable]?
+        public let paymasterContext: [String: AnyEncodable]?
 
         public init(paymasterContext: [String : AnyEncodable]? = nil) {
             self.paymasterContext = paymasterContext
@@ -29,8 +29,8 @@ public class Paymaster {
     }
 
     public class Client: Paymaster {
-        let client: PaymasterClient
-        let paymasterContext: [String: AnyEncodable]?
+        public let client: PaymasterClient
+        public let paymasterContext: [String: AnyEncodable]?
 
         public init(client: PaymasterClient, paymasterContext: [String : AnyEncodable]? = nil) {
             self.client = client

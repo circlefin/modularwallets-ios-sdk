@@ -18,7 +18,7 @@
 
 import Foundation
 
-public protocol PublicKeyCredential: Encodable {
+public protocol PublicKeyCredential: Encodable, Sendable {
     var id: String { get }
     var type: CredentialType { get }
     var authenticatorAttachment: AuthenticatorAttachment? { get }

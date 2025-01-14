@@ -33,12 +33,12 @@ public struct EncodeCallDataArg: Encodable {
     /// - functionName: required
     /// - args: optional
 
-    let to: String
-    let value: BigInt?
-    let data: String?
-    let abiJson: String?
-    let functionName: String?
-    let args: [AnyEncodable]?
+    public let to: String
+    public let value: BigInt?
+    public let data: String?
+    public let abiJson: String?
+    public let functionName: String?
+    public let args: [AnyEncodable]?
 
     public init(to: String, value: BigInt? = nil,
                 data: String? = nil, abiJson: String? = nil,

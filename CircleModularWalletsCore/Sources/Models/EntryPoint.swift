@@ -19,10 +19,10 @@
 import Foundation
 
 // ref: https://github.com/pimlicolabs/permissionless.js/blob/fb3c71cb38af576d9e0d6d131472ce941b358c9c/packages/permissionless/types/entrypoint.ts#L4
-public enum EntryPoint {
+public enum EntryPoint: Sendable {
     case v07
 
-    var address: String {
+    public var address: String {
         switch self {
         case .v07: ENTRYPOINT_V07_ADDRESS
         }

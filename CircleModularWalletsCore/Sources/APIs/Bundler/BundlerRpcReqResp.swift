@@ -21,11 +21,11 @@ import BigInt
 
 /// Result for ``BundlerClient/estimateUserOperationGas(userOp:entryPoint:)``
 public struct EstimateUserOperationGasResult: Codable {
-    let preVerificationGas: BigInt?
-    let verificationGasLimit: BigInt?
-    let callGasLimit: BigInt?
-    let paymasterVerificationGasLimit: BigInt?
-    let paymasterPostOpGasLimit: BigInt?
+    public let preVerificationGas: BigInt?
+    public let verificationGasLimit: BigInt?
+    public let callGasLimit: BigInt?
+    public let paymasterVerificationGasLimit: BigInt?
+    public let paymasterPostOpGasLimit: BigInt?
 
     init(preVerificationGas: BigInt?, verificationGasLimit: BigInt?, callGasLimit: BigInt?, paymasterVerificationGasLimit: BigInt?, paymasterPostOpGasLimit: BigInt?) {
         self.preVerificationGas = preVerificationGas
@@ -64,11 +64,11 @@ public struct EstimateUserOperationGasResult: Codable {
 
 /// Result for ``BundlerClient/getUserOperation(userOpHash:)``
 public struct GetUserOperationResult: Codable {
-    let blockHash: String?
-    let blockNumber: BigInt?
-    let transactionHash: String?
-    let entryPoint: String?
-    let userOperation: UserOperationType?
+    public let blockHash: String?
+    public let blockNumber: BigInt?
+    public let transactionHash: String?
+    public let entryPoint: String?
+    public let userOperation: UserOperationType?
 
     enum CodingKeys: String, CodingKey {
         case userOperation
@@ -157,30 +157,30 @@ public struct GetUserOperationReceiptResult: Codable {
     
     // https://github.com/wevm/viem/blob/e7431e88b0e8b83719c91f5a6a57da1a10076a1c/src/account-abstraction/types/userOperation.ts#L167
     public struct UserOperationReceipt: Codable {
-        let transactionHash: String?
-        let transactionIndex: String?
-        let blockHash: String?
-        let blockNumber: String?
-        let from: String?
-        let to: String?
-        let cumulativeGasUsed: String?
-        let gasUsed: String?
-        let logs: [Log]?
-        let logsBloom: String?
-        let status: String?
-        let effectiveGasPrice: String?
+        public let transactionHash: String?
+        public let transactionIndex: String?
+        public let blockHash: String?
+        public let blockNumber: String?
+        public let from: String?
+        public let to: String?
+        public let cumulativeGasUsed: String?
+        public let gasUsed: String?
+        public let logs: [Log]?
+        public let logsBloom: String?
+        public let status: String?
+        public let effectiveGasPrice: String?
     }
 
     // https://github.com/wevm/viem/blob/e7431e88b0e8b83719c91f5a6a57da1a10076a1c/src/types/log.ts#L15
     public struct Log: Codable {
-        let removed: Bool?
-        let logIndex: String?
-        let transactionIndex: String?
-        let transactionHash: String?
-        let blockHash: String?
-        let blockNumber: String?
-        let address: String?
-        let data: String?
-        let topics: [String]?
+        public let removed: Bool?
+        public let logIndex: String?
+        public let transactionIndex: String?
+        public let transactionHash: String?
+        public let blockHash: String?
+        public let blockNumber: String?
+        public let address: String?
+        public let data: String?
+        public let topics: [String]?
     }
 }

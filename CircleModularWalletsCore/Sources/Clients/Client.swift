@@ -18,7 +18,7 @@
 
 import Foundation
 
-public class Client {
+public class Client: @unchecked Sendable {
 
     public let chain: Chain
     public let transport: Transport

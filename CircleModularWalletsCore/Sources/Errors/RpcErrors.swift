@@ -24,7 +24,7 @@ struct RpcErrorOptions {
     var shortMessage: String
 }
 
-class RpcError: BaseError {
+public class RpcError: BaseError, @unchecked Sendable {
     let code: Int
 
     init(cause: Error, options: RpcErrorOptions) {
@@ -56,7 +56,7 @@ class RpcError: BaseError {
     }
 }
 
-class ParseRpcError: RpcError {
+public class ParseRpcError: RpcError, @unchecked Sendable {
     static let code = -32700
 
     init(cause: Error) {
@@ -68,7 +68,7 @@ class ParseRpcError: RpcError {
     }
 }
 
-class InvalidRequestRpcError: RpcError {
+public class InvalidRequestRpcError: RpcError, @unchecked Sendable {
     static let code = -32600
 
     init(cause: Error) {
@@ -80,7 +80,7 @@ class InvalidRequestRpcError: RpcError {
     }
 }
 
-class MethodNotFoundRpcError: RpcError {
+public class MethodNotFoundRpcError: RpcError, @unchecked Sendable {
     static let code = -32601
 
     init(cause: Error, method: String? = nil) {
@@ -92,7 +92,7 @@ class MethodNotFoundRpcError: RpcError {
     }
 }
 
-class InvalidParamsRpcError: RpcError {
+public class InvalidParamsRpcError: RpcError, @unchecked Sendable {
     static let code = -32602
 
     init(cause: Error) {
@@ -104,7 +104,7 @@ class InvalidParamsRpcError: RpcError {
     }
 }
 
-class InternalRpcError: RpcError {
+public class InternalRpcError: RpcError, @unchecked Sendable {
     static let code = -32603
 
     init(cause: Error) {
@@ -116,7 +116,7 @@ class InternalRpcError: RpcError {
     }
 }
 
-class InvalidInputRpcError: RpcError {
+public class InvalidInputRpcError: RpcError, @unchecked Sendable {
     static let code = -32000
 
     init(cause: Error) {
@@ -128,7 +128,7 @@ class InvalidInputRpcError: RpcError {
     }
 }
 
-class ResourceNotFoundRpcError: RpcError {
+public class ResourceNotFoundRpcError: RpcError, @unchecked Sendable {
     static let code = -32001
 
     init(cause: Error) {
@@ -140,7 +140,7 @@ class ResourceNotFoundRpcError: RpcError {
     }
 }
 
-class ResourceUnavailableRpcError: RpcError {
+public class ResourceUnavailableRpcError: RpcError, @unchecked Sendable {
     static let code = -32002
 
     init(cause: Error) {
@@ -152,7 +152,7 @@ class ResourceUnavailableRpcError: RpcError {
     }
 }
 
-class TransactionRejectedRpcError: RpcError {
+public class TransactionRejectedRpcError: RpcError, @unchecked Sendable {
     static let code = -32003
 
     init(cause: Error) {
@@ -164,7 +164,7 @@ class TransactionRejectedRpcError: RpcError {
     }
 }
 
-class MethodNotSupportedRpcError: RpcError {
+public class MethodNotSupportedRpcError: RpcError, @unchecked Sendable {
     static let code = -32004
 
     init(cause: Error, method: String? = nil) {
@@ -176,7 +176,7 @@ class MethodNotSupportedRpcError: RpcError {
     }
 }
 
-class LimitExceededRpcError: RpcError {
+public class LimitExceededRpcError: RpcError, @unchecked Sendable {
     static let code = -32005
 
     init(cause: Error) {
@@ -188,7 +188,7 @@ class LimitExceededRpcError: RpcError {
     }
 }
 
-class JsonRpcVersionUnsupportedError: RpcError {
+public class JsonRpcVersionUnsupportedError: RpcError, @unchecked Sendable {
     static let code = -32006
 
     init(cause: Error) {
@@ -200,7 +200,7 @@ class JsonRpcVersionUnsupportedError: RpcError {
     }
 }
 
-class UnknownRpcError: ProviderRpcError {
+public class UnknownRpcError: ProviderRpcError, @unchecked Sendable {
     init(cause: Error) {
         super.init(cause: cause, options: RpcErrorOptions(
             name: "UnknownRpcError",
@@ -209,9 +209,9 @@ class UnknownRpcError: ProviderRpcError {
     }
 }
 
-class ProviderRpcError: RpcError {}
+public class ProviderRpcError: RpcError , @unchecked Sendable{}
 
-class UserRejectedRequestError: ProviderRpcError {
+public class UserRejectedRequestError: ProviderRpcError, @unchecked Sendable {
     static let code = 4001
 
     init(cause: Error) {
@@ -223,7 +223,7 @@ class UserRejectedRequestError: ProviderRpcError {
     }
 }
 
-class UnauthorizedProviderError: ProviderRpcError {
+public class UnauthorizedProviderError: ProviderRpcError, @unchecked Sendable {
     static let code = 4100
 
     init(cause: Error) {
@@ -235,7 +235,7 @@ class UnauthorizedProviderError: ProviderRpcError {
     }
 }
 
-class UnsupportedProviderMethodError: ProviderRpcError {
+public class UnsupportedProviderMethodError: ProviderRpcError, @unchecked Sendable {
     static let code = 4200
 
     init(cause: Error, method: String? = nil) {
@@ -247,7 +247,7 @@ class UnsupportedProviderMethodError: ProviderRpcError {
     }
 }
 
-class ProviderDisconnectedError: ProviderRpcError {
+public class ProviderDisconnectedError: ProviderRpcError, @unchecked Sendable {
     static let code = 4900
 
     init(cause: Error) {
@@ -259,7 +259,7 @@ class ProviderDisconnectedError: ProviderRpcError {
     }
 }
 
-class ChainDisconnectedError: ProviderRpcError {
+public class ChainDisconnectedError: ProviderRpcError, @unchecked Sendable {
     static let code = 4901
 
     init(cause: Error) {
@@ -271,7 +271,7 @@ class ChainDisconnectedError: ProviderRpcError {
     }
 }
 
-class SwitchChainError: ProviderRpcError {
+public class SwitchChainError: ProviderRpcError, @unchecked Sendable {
     static let code = 4902
 
     init(cause: Error) {

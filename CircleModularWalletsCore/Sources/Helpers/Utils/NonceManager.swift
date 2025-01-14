@@ -38,8 +38,8 @@ struct NonceManagerSourceImpl: NonceManagerSource {
     }
 }
 
-class NonceManager {
-    private var source: NonceManagerSource
+class NonceManager: @unchecked Sendable {
+    private let source: NonceManagerSource
     private var deltaMap: [String: BigInt] = [:]
     private var nonceMap: [String: BigInt] = [:]
 
