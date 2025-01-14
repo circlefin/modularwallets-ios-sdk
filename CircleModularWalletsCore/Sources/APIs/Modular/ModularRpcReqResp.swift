@@ -18,20 +18,12 @@
 
 import Foundation
 
-public struct CreateWalletRequest: Encodable {
+struct GetAddressReq: Encodable {
     let scaConfiguration: ScaConfiguration
     let metadata: Metadata
 }
 
-public struct CreateWalletResponse: Decodable {
-    var data: Data
-
-    struct Data: Codable {
-        var wallets: [Wallet]
-    }
-}
-
-public struct Wallet: Codable {
+struct ModularWallet: Codable, Sendable {
     var id: String?
     var address: String?
     var blockchain: String?

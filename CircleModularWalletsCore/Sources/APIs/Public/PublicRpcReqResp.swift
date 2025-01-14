@@ -45,10 +45,9 @@ struct EthCallParams: Encodable {
 
 /// Result for ``PublicRpcApi/estimateFeesPerGas(transport:feeValuesType:)``
 public struct EstimateFeesPerGasResult: Encodable {
-
-    let maxFeePerGas: BigInt? // eip1559
-    let maxPriorityFeePerGas: BigInt? // eip1559
-    let gasPrice: BigInt? // legacy
+    public let maxFeePerGas: BigInt? // eip1559
+    public let maxPriorityFeePerGas: BigInt? // eip1559
+    public let gasPrice: BigInt? // legacy
 
     init(maxFeePerGas: BigInt?, maxPriorityFeePerGas: BigInt?, gasPrice: BigInt? = nil) {
         self.maxFeePerGas = maxFeePerGas

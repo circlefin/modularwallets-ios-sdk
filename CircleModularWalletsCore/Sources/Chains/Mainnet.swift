@@ -18,12 +18,12 @@
 
 import Foundation
 
-let Mainnet = _Mainnet()
+public let Mainnet = _Mainnet()
 
-struct _Mainnet: Chain {
+public struct _Mainnet: Chain {
 
-    let chainId: Int = 1
+    public let chainId: Int = 1
 
-    let blockchain: String = "ETH"
+    public let blockchain: String = "ETH"
 
 }

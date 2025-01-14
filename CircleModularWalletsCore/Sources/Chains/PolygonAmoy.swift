@@ -18,12 +18,12 @@
 
 import Foundation
 
-let PolygonAmoy = _PolygonAmoy()
+public let PolygonAmoy = _PolygonAmoy()
 
-struct _PolygonAmoy: Chain {
+public struct _PolygonAmoy: Chain {
 
-    let chainId: Int = 80_002
+    public let chainId: Int = 80_002
 
-    let blockchain: String = "MATIC-AMOY"
+    public let blockchain: String = "MATIC-AMOY"
     
 }

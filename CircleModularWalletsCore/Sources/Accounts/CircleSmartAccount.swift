@@ -43,15 +43,15 @@ public func toCircleSmartAccount<A: Account>(
     return try await .init(client: client, owner: owner, version: version, name: name)
 }
 
-public class CircleSmartAccount<A: Account>: SmartAccount where A.T == SignResult {
+public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable where A.T == SignResult {
     public let client: Client
     public let entryPoint: EntryPoint
     let owner: A
-    let wallet: Wallet
+    let wallet: ModularWallet
     private var deployed: Bool = false
     private let nonceManager = NonceManager(source: NonceManagerSourceImpl())
 
-    init(client: Client, owner: A, wallet: Wallet, entryPoint: EntryPoint = .v07) {
+    init(client: Client, owner: A, wallet: ModularWallet, entryPoint: EntryPoint = .v07) {
         self.client = client
         self.owner = owner
         self.wallet = wallet
@@ -97,11 +97,6 @@ public class CircleSmartAccount<A: Account>: SmartAccount where A.T == SignResul
             return config
         }
     }
-
-//    static func create(url: String, apiKey: String, client: Client, owner: A) -> CircleSmartAccount {
-//        let account = CircleSmartAccount(client: client, owner: owner, wallet: Wallet())
-//        return account
-//    }
 
     public func getAddress() -> String {
         return wallet.address ?? ""
@@ -270,9 +265,9 @@ extension CircleSmartAccount: PublicRpcApi {
         hexPublicKey: String,
         version: String,
         name: String? = nil
-    ) async throws -> Wallet {
+    ) async throws -> ModularWallet {
         let (publicKeyX, publicKeyY) = Self.extractXYFromCOSE(hexPublicKey)
-        let request = CreateWalletRequest(
+        let request = GetAddressReq(
             scaConfiguration: ScaConfiguration(
                 initialOwnershipConfiguration: .init(
                     ownershipContractAddress: nil,
@@ -288,7 +283,7 @@ extension CircleSmartAccount: PublicRpcApi {
             metadata: .init(name: name)
         )
 
-        let wallet = try await transport.circleGetAddress(transport: transport, req: request)
+        let wallet = try await transport.getAddress(transport: transport, req: request)
 
         return wallet
     }
@@ -530,13 +525,14 @@ extension CircleSmartAccount: PublicRpcApi {
             }
 
             let slicedValue = "0x" + cleanValue[startIndex..<endIndex]
-
-            if strict {
-                guard slicedValue.range(of: "^0x[0-9a-fA-F]*$", options: .regularExpression) != nil else {
-                    logger.passkeyAccount.notice("Invalid hexadecimal string")
-                    return "0x"
-                }
-            }
+            
+            // This block is never executed because the `strict` parameter is always set to its default value (`false`).
+//            if strict {
+//                guard slicedValue.range(of: "^0x[0-9a-fA-F]*$", options: .regularExpression) != nil else {
+//                    logger.passkeyAccount.notice("Invalid hexadecimal string")
+//                    return "0x"
+//                }
+//            }
 
             return slicedValue
         }

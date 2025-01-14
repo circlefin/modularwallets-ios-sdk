@@ -18,12 +18,12 @@
 
 import Foundation
 
-let Polygon = _Polygon()
+public let Polygon = _Polygon()
 
-struct _Polygon: Chain {
+public struct _Polygon: Chain {
 
-    let chainId: Int = 137
+    public let chainId: Int = 137
 
-    let blockchain: String = "MATIC"
+    public let blockchain: String = "MATIC"
 
 }

@@ -53,7 +53,7 @@ public func toWebAuthnCredential(
     }
 }
 
-public struct WebAuthnCredential: RpRpcApi {
+public struct WebAuthnCredential: RpRpcApi, Sendable {
 
     /// Credential ID property
     public let id: String

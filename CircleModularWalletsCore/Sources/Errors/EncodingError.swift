@@ -16,7 +16,7 @@
 //  limitations under the License.
 //
 
-class IntegerOutOfRangeError: BaseError {
+public class IntegerOutOfRangeError: BaseError, @unchecked Sendable {
     init(cause: BaseError? = nil) {
         super.init(shortMessage: "The input value is out of range",
                    args: BaseErrorParameters(cause: cause, name: "IntegerOutOfRangeError"))

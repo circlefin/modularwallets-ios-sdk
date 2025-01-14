@@ -18,12 +18,12 @@
 
 import Foundation
 
-let Arbitrum = _Arbitrum()
+public let Arbitrum = _Arbitrum()
 
-struct _Arbitrum: Chain {
+public struct _Arbitrum: Chain {
 
-    let chainId: Int = 42161
+    public let chainId: Int = 42161
 
-    let blockchain: String = "ARB"
+    public let blockchain: String = "ARB"
 
 }

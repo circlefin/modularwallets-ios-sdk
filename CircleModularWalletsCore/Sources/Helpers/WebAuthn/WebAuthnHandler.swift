@@ -32,6 +32,10 @@ class WebAuthnHandler: NSObject, @unchecked Sendable {
         anchor: ASPresentationAnchor? = nil,
         option: PublicKeyCredentialCreationOptions
     ) async throws -> PublicKeyCredential {
+        guard isPerformingModalReqest == false else {
+            throw BaseError(shortMessage: "WebAuthn request is authorizing. Please wait until the current authentication is finished and try again.")
+        }
+
         return try await withCheckedThrowingContinuation { continuation in
             self.authenticationAnchor = anchor
 
@@ -64,6 +68,10 @@ class WebAuthnHandler: NSObject, @unchecked Sendable {
         anchor: ASPresentationAnchor? = nil,
         option: PublicKeyCredentialRequestOptions
     ) async throws -> PublicKeyCredential  {
+        guard isPerformingModalReqest == false else {
+            throw BaseError(shortMessage: "WebAuthn request is authorizing. Please wait until the current authentication is finished and try again.")
+        }
+
         return try await withCheckedThrowingContinuation { continuation in
             self.authenticationAnchor = anchor
 

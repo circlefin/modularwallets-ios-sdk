@@ -18,7 +18,7 @@
 
 import Foundation
 
-class RpcRequestError: BaseError {
+public class RpcRequestError: BaseError, @unchecked Sendable {
     let code: Int
     
     init(body: Data?, error: JsonRpcError, url: String) {
@@ -32,7 +32,7 @@ class RpcRequestError: BaseError {
     }
 }
 
-class HttpRequestError: BaseError {
+public class HttpRequestError: BaseError, @unchecked Sendable {
     let body: Data?
     let headers: [String: String]?
     let status: Int?
@@ -77,7 +77,7 @@ class HttpRequestError: BaseError {
     }
 }
 
-class TimeoutError: BaseError {
+public class TimeoutError: BaseError, @unchecked Sendable {
     init(body: Data?, url: String) {
         var metaMessages: [String] = []
         metaMessages.append("URL: \(url)")

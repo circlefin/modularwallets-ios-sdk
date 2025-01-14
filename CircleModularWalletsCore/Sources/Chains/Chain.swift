@@ -18,8 +18,10 @@
 
 import Foundation
 
-public protocol Chain {
+public protocol Chain: Sendable {
 
     var chainId: Int { get }
+
+    var blockchain: String { get }
 
 }

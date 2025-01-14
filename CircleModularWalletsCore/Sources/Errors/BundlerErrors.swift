@@ -19,7 +19,7 @@
 import Foundation
 import BigInt
 
-class AccountNotDeployedError: BaseError {
+public class AccountNotDeployedError: BaseError, @unchecked Sendable {
     static let message = "aa20"
 
     init(cause: BaseError? = nil) {
@@ -36,7 +36,7 @@ class AccountNotDeployedError: BaseError {
     }
 }
 
-class ExecutionRevertedError: BaseError {
+public class ExecutionRevertedError: BaseError, @unchecked Sendable {
     static let code: Int = -32521
 
     init(cause: BaseError? = nil, message: String? = nil) {
@@ -60,7 +60,7 @@ class ExecutionRevertedError: BaseError {
     }
 }
 
-class FailedToSendToBeneficiaryError: BaseError {
+public class FailedToSendToBeneficiaryError: BaseError, @unchecked Sendable {
     static let message = "aa91"
 
     init(cause: BaseError? = nil) {
@@ -72,7 +72,7 @@ class FailedToSendToBeneficiaryError: BaseError {
     }
 }
 
-class GasValuesOverflowError: BaseError {
+public class GasValuesOverflowError: BaseError, @unchecked Sendable {
     static let message = "aa94"
 
     init(cause: BaseError? = nil) {
@@ -88,7 +88,7 @@ class GasValuesOverflowError: BaseError {
     }
 }
 
-class HandleOpsOutOfGasError: BaseError {
+public class HandleOpsOutOfGasError: BaseError, @unchecked Sendable {
     static let message = "aa95"
 
     init(cause: BaseError? = nil) {
@@ -100,7 +100,7 @@ class HandleOpsOutOfGasError: BaseError {
     }
 }
 
-class InitCodeFailedError: BaseError {
+public class InitCodeFailedError: BaseError, @unchecked Sendable {
     static let message = "aa13"
 
     init(cause: BaseError? = nil, factory: String? = nil, factoryData: String? = nil, initCode: String? = nil) {
@@ -130,7 +130,7 @@ class InitCodeFailedError: BaseError {
     }
 }
 
-class InitCodeMustCreateSenderError: BaseError {
+public class InitCodeMustCreateSenderError: BaseError, @unchecked Sendable {
     static let message = "aa15"
 
     init(cause: BaseError? = nil, factory: String? = nil, factoryData: String? = nil, initCode: String? = nil) {
@@ -159,7 +159,7 @@ class InitCodeMustCreateSenderError: BaseError {
     }
 }
 
-class InitCodeMustReturnSenderError: BaseError {
+public class InitCodeMustReturnSenderError: BaseError, @unchecked Sendable {
     static let message = "aa14"
 
     init(cause: BaseError? = nil, factory: String? = nil, factoryData: String? = nil, initCode: String? = nil, sender: String? = nil) {
@@ -190,7 +190,7 @@ class InitCodeMustReturnSenderError: BaseError {
     }
 }
 
-class InsufficientPrefundError: BaseError {
+public class InsufficientPrefundError: BaseError, @unchecked Sendable {
     static let message = "aa21"
 
     init(cause: BaseError? = nil) {
@@ -207,7 +207,7 @@ class InsufficientPrefundError: BaseError {
     }
 }
 
-class InternalCallOnlyError: BaseError {
+public class InternalCallOnlyError: BaseError, @unchecked Sendable {
     static let message = "aa92"
 
     init(cause: BaseError? = nil) {
@@ -219,7 +219,7 @@ class InternalCallOnlyError: BaseError {
     }
 }
 
-class InvalidAggregatorError: BaseError {
+public class InvalidAggregatorError: BaseError, @unchecked Sendable {
     static let message = "aa96"
 
     init(cause: BaseError? = nil) {
@@ -231,7 +231,7 @@ class InvalidAggregatorError: BaseError {
     }
 }
 
-class InvalidAccountNonceError: BaseError {
+public class InvalidAccountNonceError: BaseError, @unchecked Sendable {
     static let message = "aa25"
 
     init(cause: BaseError? = nil, nonce: BigInt? = nil) {
@@ -248,7 +248,7 @@ class InvalidAccountNonceError: BaseError {
     }
 }
 
-class InvalidBeneficiaryError: BaseError {
+public class InvalidBeneficiaryError: BaseError, @unchecked Sendable {
     static let message = "aa90"
 
     init(cause: BaseError? = nil) {
@@ -260,7 +260,7 @@ class InvalidBeneficiaryError: BaseError {
     }
 }
 
-class InvalidFieldsError: BaseError {
+public class InvalidFieldsError: BaseError, @unchecked Sendable {
     static let code: Int = -32602
 
     init(cause: BaseError? = nil) {
@@ -272,7 +272,7 @@ class InvalidFieldsError: BaseError {
     }
 }
 
-class InvalidPaymasterAndDataError: BaseError {
+public class InvalidPaymasterAndDataError: BaseError, @unchecked Sendable {
     static let message = "aa93"
 
     init(cause: BaseError? = nil, paymasterAndData: String? = nil) {
@@ -294,7 +294,7 @@ class InvalidPaymasterAndDataError: BaseError {
     }
 }
 
-class PaymasterDepositTooLowError: BaseError {
+public class PaymasterDepositTooLowError: BaseError, @unchecked Sendable {
     static let code: Int = -32508
     static let message = "aa31"
 
@@ -311,7 +311,7 @@ class PaymasterDepositTooLowError: BaseError {
     }
 }
 
-class PaymasterFunctionRevertedError: BaseError {
+public class PaymasterFunctionRevertedError: BaseError, @unchecked Sendable {
     static let message = "aa33"
 
     init(cause: BaseError? = nil) {
@@ -323,7 +323,7 @@ class PaymasterFunctionRevertedError: BaseError {
     }
 }
 
-class PaymasterNotDeployedError: BaseError {
+public class PaymasterNotDeployedError: BaseError, @unchecked Sendable {
     static let message = "aa30"
 
     init(cause: BaseError? = nil) {
@@ -335,7 +335,7 @@ class PaymasterNotDeployedError: BaseError {
     }
 }
 
-class PaymasterRateLimitError: BaseError {
+public class PaymasterRateLimitError: BaseError, @unchecked Sendable {
     static let code: Int = -32504
 
     init(cause: BaseError? = nil) {
@@ -347,7 +347,7 @@ class PaymasterRateLimitError: BaseError {
     }
 }
 
-class PaymasterStakeTooLowError: BaseError {
+public class PaymasterStakeTooLowError: BaseError, @unchecked Sendable {
     static let code: Int = -32505
 
     init(cause: BaseError? = nil) {
@@ -359,7 +359,7 @@ class PaymasterStakeTooLowError: BaseError {
     }
 }
 
-class PaymasterPostOpFunctionRevertedError: BaseError {
+public class PaymasterPostOpFunctionRevertedError: BaseError, @unchecked Sendable {
     static let message = "aa50"
 
     init(cause: BaseError? = nil) {
@@ -371,7 +371,7 @@ class PaymasterPostOpFunctionRevertedError: BaseError {
     }
 }
 
-class SenderAlreadyConstructedError: BaseError {
+public class SenderAlreadyConstructedError: BaseError, @unchecked Sendable {
     static let message = "aa10"
 
     init(cause: BaseError? = nil, factory: String? = nil, factoryData: String? = nil, initCode: String? = nil) {
@@ -396,7 +396,7 @@ class SenderAlreadyConstructedError: BaseError {
     }
 }
 
-class SignatureCheckFailedError: BaseError {
+public class SignatureCheckFailedError: BaseError, @unchecked Sendable {
     static let code: Int = -32507
 
     init(cause: BaseError? = nil) {
@@ -408,7 +408,7 @@ class SignatureCheckFailedError: BaseError {
     }
 }
 
-class SmartAccountFunctionRevertedError: BaseError {
+public class SmartAccountFunctionRevertedError: BaseError, @unchecked Sendable {
     static let message = "aa23"
 
     init(cause: BaseError? = nil) {
@@ -420,7 +420,7 @@ class SmartAccountFunctionRevertedError: BaseError {
     }
 }
 
-class UnsupportedSignatureAggregatorError: BaseError {
+public class UnsupportedSignatureAggregatorError: BaseError, @unchecked Sendable {
     static let code: Int = -32506
 
     init(cause: BaseError? = nil) {
@@ -432,7 +432,7 @@ class UnsupportedSignatureAggregatorError: BaseError {
     }
 }
 
-class UserOperationExpiredError: BaseError {
+public class UserOperationExpiredError: BaseError, @unchecked Sendable {
     static let message = "aa22"
 
     init(cause: BaseError? = nil) {
@@ -448,7 +448,7 @@ class UserOperationExpiredError: BaseError {
     }
 }
 
-class UserOperationPaymasterExpiredError: BaseError {
+public class UserOperationPaymasterExpiredError: BaseError, @unchecked Sendable {
     static let message = "aa32"
 
     init(cause: BaseError? = nil) {
@@ -464,7 +464,7 @@ class UserOperationPaymasterExpiredError: BaseError {
     }
 }
 
-class UserOperationSignatureError: BaseError {
+public class UserOperationSignatureError: BaseError, @unchecked Sendable {
     static let message = "aa24"
 
     init(cause: BaseError? = nil) {
@@ -480,7 +480,7 @@ class UserOperationSignatureError: BaseError {
     }
 }
 
-class UserOperationPaymasterSignatureError: BaseError {
+public class UserOperationPaymasterSignatureError: BaseError, @unchecked Sendable {
     static let message = "aa34"
 
     init(cause: BaseError? = nil) {
@@ -496,7 +496,7 @@ class UserOperationPaymasterSignatureError: BaseError {
     }
 }
 
-class UserOperationRejectedByEntryPointError: BaseError {
+public class UserOperationRejectedByEntryPointError: BaseError, @unchecked Sendable {
     static let code: Int = -32500
 
     init(cause: BaseError? = nil) {
@@ -508,7 +508,7 @@ class UserOperationRejectedByEntryPointError: BaseError {
     }
 }
 
-class UserOperationRejectedByPaymasterError: BaseError {
+public class UserOperationRejectedByPaymasterError: BaseError, @unchecked Sendable {
     static let code: Int = -32501
 
     init(cause: BaseError? = nil) {
@@ -520,7 +520,7 @@ class UserOperationRejectedByPaymasterError: BaseError {
     }
 }
 
-class UserOperationRejectedByOpCodeError: BaseError {
+public class UserOperationRejectedByOpCodeError: BaseError, @unchecked Sendable {
     static let code: Int = -32502
 
     init(cause: BaseError? = nil) {
@@ -532,7 +532,7 @@ class UserOperationRejectedByOpCodeError: BaseError {
     }
 }
 
-class UserOperationOutOfTimeRangeError: BaseError {
+public class UserOperationOutOfTimeRangeError: BaseError, @unchecked Sendable {
     static let code: Int = -32503
 
     init(cause: BaseError? = nil) {
@@ -544,7 +544,7 @@ class UserOperationOutOfTimeRangeError: BaseError {
     }
 }
 
-class VerificationGasLimitExceededError: BaseError {
+public class VerificationGasLimitExceededError: BaseError, @unchecked Sendable {
     static let message = "aa40"
 
     init(cause: BaseError? = nil) {
@@ -560,7 +560,7 @@ class VerificationGasLimitExceededError: BaseError {
     }
 }
 
-class VerificationGasLimitTooLowError: BaseError {
+public class VerificationGasLimitTooLowError: BaseError, @unchecked Sendable {
     static let message = "aa41"
 
     init(cause: BaseError? = nil) {
@@ -576,7 +576,7 @@ class VerificationGasLimitTooLowError: BaseError {
     }
 }
 
-class UnknownBundlerError: BaseError {
+public class UnknownBundlerError: BaseError, @unchecked Sendable {
     init(cause: BaseError? = nil) {
         super.init(shortMessage: "An error occurred while executing user operation: \(cause?.shortMessage ?? "Unknown error")",
                    args: BaseErrorParameters(
