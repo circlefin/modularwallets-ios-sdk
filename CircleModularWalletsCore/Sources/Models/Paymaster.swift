@@ -18,21 +18,43 @@
 
 import Foundation
 
+/// Class for setting User Operation Paymaster configuration.
+///
+/// If `paymaster` is `True`, it will be assumed that the Bundler Client also supports Paymaster RPC methods
+/// (e.g., `pm_getPaymasterData`), and these methods will be used for sponsorship.
+/// If `paymaster` is `Client`, it will use the provided Paymaster Client for sponsorship.
 public class Paymaster {
 
+    /// Represents a Paymaster configuration where the Bundler Client supports Paymaster RPC methods.
     public class True: Paymaster {
+
+        /// Optional context for the paymaster.
         public let paymasterContext: [String: AnyEncodable]?
 
-        public init(paymasterContext: [String : AnyEncodable]? = nil) {
+        /// Initializes a new `True` Paymaster configuration.
+        ///
+        /// - Parameters:
+        ///   - paymasterContext: Optional context for the paymaster. Defaults to `nil`.
+        public init(paymasterContext: [String: AnyEncodable]? = nil) {
             self.paymasterContext = paymasterContext
         }
     }
 
+    /// Represents a Paymaster configuration using a provided Paymaster Client for sponsorship.
     public class Client: Paymaster {
+
+        /// The Paymaster Client used for sponsorship.
         public let client: PaymasterClient
+
+        /// Optional context for the paymaster.
         public let paymasterContext: [String: AnyEncodable]?
 
-        public init(client: PaymasterClient, paymasterContext: [String : AnyEncodable]? = nil) {
+        /// Initializes a new `Client` Paymaster configuration.
+        ///
+        /// - Parameters:
+        ///   - client: The Paymaster Client used for sponsorship.
+        ///   - paymasterContext: Optional context for the paymaster. Defaults to `nil`.
+        public init(client: PaymasterClient, paymasterContext: [String: AnyEncodable]? = nil) {
             self.client = client
             self.paymasterContext = paymasterContext
         }

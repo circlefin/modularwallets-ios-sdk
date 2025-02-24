@@ -18,10 +18,37 @@
 
 import Foundation
 
+/// Protocol representing an account.
 public protocol Account {
+    /// The type of the signed data.
     associatedtype T: Decodable
+
+    /// Retrieves the address of the account.
+    ///
+    /// - Returns: The address of the account.
     func getAddress() -> String
+
+    /// Signs the given hex data.
+    ///
+    /// - Parameters:
+    ///   - hex: The hex data to sign.
+    ///
+    /// - Returns: The signed data of type `T`.
     func sign(hex: String) async throws -> T
+
+    /// Signs the given message.
+    ///
+    /// - Parameters:
+    ///   - message: The message to sign.
+    ///
+    /// - Returns: The signed message of type `T`.
     func signMessage(message: String) async throws -> T
+
+    /// Signs the given typed data.
+    ///
+    /// - Parameters:
+    ///   - typedData: The typed data to sign.
+    ///
+    /// - Returns: The signed typed data of type `T`.
     func signTypedData(typedData: String) async throws -> T
 }

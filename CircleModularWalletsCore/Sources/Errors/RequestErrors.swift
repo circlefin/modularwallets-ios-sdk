@@ -18,6 +18,7 @@
 
 import Foundation
 
+@_documentation(visibility: private)
 public class RpcRequestError: BaseError, @unchecked Sendable {
     let code: Int
     
@@ -32,6 +33,7 @@ public class RpcRequestError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class HttpRequestError: BaseError, @unchecked Sendable {
     let body: Data?
     let headers: [String: String]?
@@ -77,6 +79,7 @@ public class HttpRequestError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class TimeoutError: BaseError, @unchecked Sendable {
     init(body: Data?, url: String) {
         var metaMessages: [String] = []

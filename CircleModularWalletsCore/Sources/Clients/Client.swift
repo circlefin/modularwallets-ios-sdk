@@ -18,11 +18,21 @@
 
 import Foundation
 
+/// A Client provides access to a subset of Actions.
+/// There are two types of Clients in CircleModularWalletsCore: ``BundlerClient``, ``PaymasterClient``
 public class Client: @unchecked Sendable {
-
+    
+    /// The blockchain that the client interacts with.
     public let chain: Chain
+
+    /// The transport mechanism used for making RPC requests.
     public let transport: Transport
 
+    /// Initialize a Client with your desired Chain (e.g. ``Mainnet``) and Transport (e.g. ``http(url:options:)``).
+    ///
+    /// - Properties:
+    ///   - chain: The blockchain that the client interacts with.
+    ///   - transport: The transport mechanism used for making RPC requests.
     public init(chain: Chain, transport: Transport) {
         self.chain = chain
         self.transport = transport

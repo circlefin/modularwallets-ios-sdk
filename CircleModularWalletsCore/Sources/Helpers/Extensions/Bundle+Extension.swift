@@ -21,12 +21,12 @@ import Foundation
 #if SWIFT_PACKAGE
 extension Bundle {
     public enum SDK {
-        public static let version = "1.0.8"
+        public static let version = "1.0.9"
     }
 }
 #else
 extension Bundle {
-    static let SDK = Bundle(identifier: "com.circle.ModularWallets.core")!
+    static let SDK = Bundle(identifier: "com.circle.ModularWallets.core") ?? Bundle.main
 }
 #endif
 

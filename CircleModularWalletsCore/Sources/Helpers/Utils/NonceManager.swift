@@ -19,36 +19,36 @@
 import Foundation
 import BigInt
 
-struct FunctionParameters {
+struct FunctionParameters: Hashable {
     let address: String
     let chainId: Int
 }
 
-protocol NonceManagerSource {
-    func get(parameters: FunctionParameters) -> BigInt
-    func set(parameters: FunctionParameters, nonce: BigInt)
+///
+/// - Note: Since cross-actor boundary handling is required, BigInt is converted into a string type,
+/// as this type is Sendable and can be safely passed across actors.
+///
+protocol NonceManagerSource: Actor {
+    func get(parameters: FunctionParameters) async -> String
+    func set(parameters: FunctionParameters, nonce: String) async
 }
 
-struct NonceManagerSourceImpl: NonceManagerSource {
-    func get(parameters: FunctionParameters) -> BigInt {
-        return BigInt(Date().timeIntervalSince1970 * 1000)
+actor NonceManagerSourceImpl: NonceManagerSource {
+    func get(parameters: FunctionParameters) async -> String {
+        return BigInt(Date().timeIntervalSince1970 * 1000).description
     }
 
-    func set(parameters: FunctionParameters, nonce: BigInt) {
+    func set(parameters: FunctionParameters, nonce: String) async {
     }
 }
 
-class NonceManager: @unchecked Sendable {
+actor NonceManager {
     private let source: NonceManagerSource
-    private var deltaMap: [String: BigInt] = [:]
-    private var nonceMap: [String: BigInt] = [:]
+    private var deltaMap: [FunctionParameters: BigInt] = [:]
+    private var nonceMap: [FunctionParameters: BigInt] = [:]
 
     init(source: NonceManagerSource) {
         self.source = source
-    }
-
-    private func getKey(params: FunctionParameters) -> String {
-        return "\(params.address).\(params.chainId)"
     }
 
     ///
@@ -56,50 +56,56 @@ class NonceManager: @unchecked Sendable {
     /// Update nonceMap with value (source nonce or previousNonce + 1) + delta.
     /// The value will be used as previousNonce next time.
     ///
-    func consume(params: FunctionParameters) -> BigInt {
-        let key = getKey(params: params)
-        increment(params: params)
-        let nonce = get(params: params)
-        source.set(parameters: params, nonce: nonce)
-        nonceMap[key] = nonce
-        return nonce
+    /// - Note: Since cross-actor boundary handling is required, BigInt is converted into a string type,
+    /// as this type is Sendable and can be safely passed across actors.
+    ///
+    @Sendable
+    func consume(params: FunctionParameters) async -> String {
+        let nonce = await getAndIncrementNonce(params: params)
+        await source.set(parameters: params, nonce: nonce.description)
+        return nonce.description
     }
 
-    /// Increase delta
-    private func increment(params: FunctionParameters) {
-        let key = getKey(params: params)
-        let delta = deltaMap[key] ?? BigInt(0)
-        deltaMap[key] = delta + BigInt(1)
+    /// Handle nonce reading & modification in a single operation.
+    private func getAndIncrementNonce(params: FunctionParameters) async -> BigInt {
+        let nextNonce = await internalGet(params: params)
+
+        let delta = deltaMap[params, default: 0]
+        deltaMap[params] = delta + BigInt(1)
+        nonceMap[params] = nextNonce + delta + BigInt(1)
+
+        let newNonce = nextNonce + deltaMap[params, default: 0]
+        deltaMap.removeValue(forKey: params)
+
+        return newNonce
     }
 
     /// Return (source nonce or previousNonce + 1) + delta
-    func get(params: FunctionParameters) -> BigInt {
-        let key = getKey(params: params)
-        let delta = deltaMap[key] ?? BigInt(0)
-        let nonce = internalGet(params: params, key: key)
-        return delta + nonce
-    }
-
-    /// Reset delta
-    private func reset(params: FunctionParameters) {
-        let key = getKey(params: params)
-        deltaMap.removeValue(forKey: key)
+    ///
+    /// - Note: Since cross-actor boundary handling is required, BigInt is converted into a string type,
+    /// as this type is Sendable and can be safely passed across actors.
+    @Sendable
+    func get(params: FunctionParameters) async -> String {
+        let delta = deltaMap[params, default: 0]
+        let nonce = await internalGet(params: params)
+        return (delta + nonce).description
     }
 
     /// Return source nonce or previousNonce + 1
-    private func internalGet(params: FunctionParameters, key: String) -> BigInt {
-        var nonce: BigInt
+    private func internalGet(params: FunctionParameters) async -> BigInt {
+        let fetchedNonceString = await source.get(parameters: params)
+        let fetchedNonce = BigInt(fetchedNonceString) ?? BigInt(0)
+        let previousNonce = nonceMap[params, default: 0]
 
-        let fetchedNonce = source.get(parameters: params)
-        let previousNonce = nonceMap[key] ?? BigInt(0)
+        let nonce: BigInt
         if previousNonce > BigInt(0) && fetchedNonce <= previousNonce {
             nonce = previousNonce + BigInt(1)
         } else {
-            nonceMap.removeValue(forKey: key)
+            nonceMap.removeValue(forKey: params)
             nonce = fetchedNonce
         }
 
-        reset(params: params)
+        deltaMap.removeValue(forKey: params)
 
         return nonce
     }

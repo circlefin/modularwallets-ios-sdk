@@ -19,6 +19,7 @@
 import Foundation
 import BigInt
 
+@_documentation(visibility: private)
 public class AccountNotDeployedError: BaseError, @unchecked Sendable {
     static let message = "aa20"
 
@@ -36,6 +37,7 @@ public class AccountNotDeployedError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class ExecutionRevertedError: BaseError, @unchecked Sendable {
     static let code: Int = -32521
 
@@ -60,6 +62,7 @@ public class ExecutionRevertedError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class FailedToSendToBeneficiaryError: BaseError, @unchecked Sendable {
     static let message = "aa91"
 
@@ -72,6 +75,7 @@ public class FailedToSendToBeneficiaryError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class GasValuesOverflowError: BaseError, @unchecked Sendable {
     static let message = "aa94"
 
@@ -88,6 +92,7 @@ public class GasValuesOverflowError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class HandleOpsOutOfGasError: BaseError, @unchecked Sendable {
     static let message = "aa95"
 
@@ -100,6 +105,7 @@ public class HandleOpsOutOfGasError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class InitCodeFailedError: BaseError, @unchecked Sendable {
     static let message = "aa13"
 
@@ -130,6 +136,7 @@ public class InitCodeFailedError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class InitCodeMustCreateSenderError: BaseError, @unchecked Sendable {
     static let message = "aa15"
 
@@ -159,6 +166,7 @@ public class InitCodeMustCreateSenderError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class InitCodeMustReturnSenderError: BaseError, @unchecked Sendable {
     static let message = "aa14"
 
@@ -190,6 +198,7 @@ public class InitCodeMustReturnSenderError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class InsufficientPrefundError: BaseError, @unchecked Sendable {
     static let message = "aa21"
 
@@ -207,6 +216,7 @@ public class InsufficientPrefundError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class InternalCallOnlyError: BaseError, @unchecked Sendable {
     static let message = "aa92"
 
@@ -219,6 +229,7 @@ public class InternalCallOnlyError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class InvalidAggregatorError: BaseError, @unchecked Sendable {
     static let message = "aa96"
 
@@ -231,6 +242,7 @@ public class InvalidAggregatorError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class InvalidAccountNonceError: BaseError, @unchecked Sendable {
     static let message = "aa25"
 
@@ -248,6 +260,7 @@ public class InvalidAccountNonceError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class InvalidBeneficiaryError: BaseError, @unchecked Sendable {
     static let message = "aa90"
 
@@ -260,6 +273,7 @@ public class InvalidBeneficiaryError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class InvalidFieldsError: BaseError, @unchecked Sendable {
     static let code: Int = -32602
 
@@ -272,6 +286,7 @@ public class InvalidFieldsError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class InvalidPaymasterAndDataError: BaseError, @unchecked Sendable {
     static let message = "aa93"
 
@@ -294,6 +309,7 @@ public class InvalidPaymasterAndDataError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class PaymasterDepositTooLowError: BaseError, @unchecked Sendable {
     static let code: Int = -32508
     static let message = "aa31"
@@ -311,6 +327,7 @@ public class PaymasterDepositTooLowError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class PaymasterFunctionRevertedError: BaseError, @unchecked Sendable {
     static let message = "aa33"
 
@@ -323,6 +340,7 @@ public class PaymasterFunctionRevertedError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class PaymasterNotDeployedError: BaseError, @unchecked Sendable {
     static let message = "aa30"
 
@@ -335,6 +353,7 @@ public class PaymasterNotDeployedError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class PaymasterRateLimitError: BaseError, @unchecked Sendable {
     static let code: Int = -32504
 
@@ -347,6 +366,7 @@ public class PaymasterRateLimitError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class PaymasterStakeTooLowError: BaseError, @unchecked Sendable {
     static let code: Int = -32505
 
@@ -359,6 +379,7 @@ public class PaymasterStakeTooLowError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class PaymasterPostOpFunctionRevertedError: BaseError, @unchecked Sendable {
     static let message = "aa50"
 
@@ -371,6 +392,7 @@ public class PaymasterPostOpFunctionRevertedError: BaseError, @unchecked Sendabl
     }
 }
 
+@_documentation(visibility: private)
 public class SenderAlreadyConstructedError: BaseError, @unchecked Sendable {
     static let message = "aa10"
 
@@ -396,6 +418,7 @@ public class SenderAlreadyConstructedError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class SignatureCheckFailedError: BaseError, @unchecked Sendable {
     static let code: Int = -32507
 
@@ -408,6 +431,7 @@ public class SignatureCheckFailedError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class SmartAccountFunctionRevertedError: BaseError, @unchecked Sendable {
     static let message = "aa23"
 
@@ -420,6 +444,7 @@ public class SmartAccountFunctionRevertedError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class UnsupportedSignatureAggregatorError: BaseError, @unchecked Sendable {
     static let code: Int = -32506
 
@@ -432,6 +457,7 @@ public class UnsupportedSignatureAggregatorError: BaseError, @unchecked Sendable
     }
 }
 
+@_documentation(visibility: private)
 public class UserOperationExpiredError: BaseError, @unchecked Sendable {
     static let message = "aa22"
 
@@ -448,6 +474,7 @@ public class UserOperationExpiredError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class UserOperationPaymasterExpiredError: BaseError, @unchecked Sendable {
     static let message = "aa32"
 
@@ -464,6 +491,7 @@ public class UserOperationPaymasterExpiredError: BaseError, @unchecked Sendable 
     }
 }
 
+@_documentation(visibility: private)
 public class UserOperationSignatureError: BaseError, @unchecked Sendable {
     static let message = "aa24"
 
@@ -480,6 +508,7 @@ public class UserOperationSignatureError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class UserOperationPaymasterSignatureError: BaseError, @unchecked Sendable {
     static let message = "aa34"
 
@@ -496,6 +525,7 @@ public class UserOperationPaymasterSignatureError: BaseError, @unchecked Sendabl
     }
 }
 
+@_documentation(visibility: private)
 public class UserOperationRejectedByEntryPointError: BaseError, @unchecked Sendable {
     static let code: Int = -32500
 
@@ -508,6 +538,7 @@ public class UserOperationRejectedByEntryPointError: BaseError, @unchecked Senda
     }
 }
 
+@_documentation(visibility: private)
 public class UserOperationRejectedByPaymasterError: BaseError, @unchecked Sendable {
     static let code: Int = -32501
 
@@ -520,6 +551,7 @@ public class UserOperationRejectedByPaymasterError: BaseError, @unchecked Sendab
     }
 }
 
+@_documentation(visibility: private)
 public class UserOperationRejectedByOpCodeError: BaseError, @unchecked Sendable {
     static let code: Int = -32502
 
@@ -532,6 +564,7 @@ public class UserOperationRejectedByOpCodeError: BaseError, @unchecked Sendable 
     }
 }
 
+@_documentation(visibility: private)
 public class UserOperationOutOfTimeRangeError: BaseError, @unchecked Sendable {
     static let code: Int = -32503
 
@@ -544,6 +577,7 @@ public class UserOperationOutOfTimeRangeError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class VerificationGasLimitExceededError: BaseError, @unchecked Sendable {
     static let message = "aa40"
 
@@ -560,6 +594,7 @@ public class VerificationGasLimitExceededError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class VerificationGasLimitTooLowError: BaseError, @unchecked Sendable {
     static let message = "aa41"
 
@@ -576,6 +611,7 @@ public class VerificationGasLimitTooLowError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class UnknownBundlerError: BaseError, @unchecked Sendable {
     init(cause: BaseError? = nil) {
         super.init(shortMessage: "An error occurred while executing user operation: \(cause?.shortMessage ?? "Unknown error")",

@@ -151,7 +151,7 @@ extension WebAuthnHandler: ASAuthorizationControllerDelegate {
                 )
             )
             logger.webAuthn.debug("RegistrationCredential:")
-            print(credential)
+            logger.webAuthn.debug("\(String(describing: credential))")
 
             continuation?.resume(returning: credential)
             continuation = nil
@@ -188,7 +188,7 @@ extension WebAuthnHandler: ASAuthorizationControllerDelegate {
                 )
             )
             logger.webAuthn.debug("AuthenticationCredential:")
-            print(credential)
+            logger.webAuthn.debug("\(String(describing: credential))")
 
             continuation?.resume(returning: credential)
             continuation = nil

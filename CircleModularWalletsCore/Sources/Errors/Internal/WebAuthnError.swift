@@ -12,8 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-/// An error that occured preparing or processing WebAuthn-related requests.
-public struct WebAuthnError: Error, Hashable, Sendable {
+/// An error that occurred preparing or processing WebAuthn-related requests.
+struct WebAuthnError: Error, Hashable, Sendable {
+
     enum Reason: Error {
         // MARK: Shared
         case attestedCredentialDataMissing

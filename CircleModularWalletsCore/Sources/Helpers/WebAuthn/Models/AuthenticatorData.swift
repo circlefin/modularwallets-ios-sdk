@@ -89,7 +89,7 @@ extension AuthenticatorData {
                 throw WebAuthnError.extensionDataMissing
             }
             extensionData = Array(bytes[(bytes.count - remainingCount)...])
-            remainingCount -= extensionData!.count
+            remainingCount -= extensionData?.count ?? 0
         }
 
         guard remainingCount == 0 else {
@@ -150,7 +150,7 @@ extension AuthenticatorData {
 
 /// A helper type to determine how many bytes were consumed when decoding CBOR items.
 class ByteInputStream: CBORInputStream {
-    private var slice : ArraySlice<UInt8>
+    private var slice: ArraySlice<UInt8>
     
     init(_ slice: ArraySlice<UInt8>) {
         self.slice = slice

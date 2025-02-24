@@ -18,10 +18,13 @@
 
 import Foundation
 
+/// Abstract class representing a blockchain.
 public protocol Chain: Sendable {
-
+    
+    /// The unique identifier for the blockchain.
     var chainId: Int { get }
 
+    /// The blockchain name.
     var blockchain: String { get }
 
 }

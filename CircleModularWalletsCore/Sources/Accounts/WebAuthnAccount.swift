@@ -21,18 +21,36 @@ import Web3Core
 import web3swift
 import BigInt
 
+/// Creates a WebAuthn account.
+///
+/// - Parameters:
+///   - credential: The WebAuthn credential associated with the account.
+///
+/// - Returns: The created WebAuthn account.
 public func toWebAuthnAccount(_ credential: WebAuthnCredential) -> WebAuthnAccount {
     return .init(credential: credential)
 }
 
+/// Represents a WebAuthn account.
 public struct WebAuthnAccount: Account {
 
+    /// The WebAuthn credential associated with the account.
     let credential: WebAuthnCredential
 
+    /// Retrieves the address of the WebAuthn account.
+    ///
+    /// - Returns: The public key associated with the WebAuthn credential.
     public func getAddress() -> String {
         return credential.publicKey
     }
 
+    /// Signs the given hex data.
+    ///
+    /// - Parameters:
+    ///   - hex: The hex data to sign.
+    ///
+    /// - Returns: The result of the signing operation.
+    /// - Throws: A `BaseError` if the credential request fails.
     public func sign(hex: String) async throws -> SignResult {
         do {
             /// Step 1. Get RequestOptions
@@ -41,7 +59,7 @@ public struct WebAuthnAccount: Account {
                 allowCredentialId: credential.id,
                 hex: hex)
 
-            /// Step 2. get credential */
+            /// Step 2. Get credential
             let credential = try await WebAuthnHandler.shared.signInWith(option: option)
             guard let authCredential = credential as? AuthenticationCredential,
                   let response = authCredential.response as? AuthenticatorAssertionResponse else {
@@ -77,6 +95,13 @@ public struct WebAuthnAccount: Account {
         }
     }
 
+    /// Signs the given message.
+    ///
+    /// - Parameters:
+    ///   - message: The message to sign.
+    ///
+    /// - Returns: The result of the signing operation.
+    /// - Throws: A `BaseError` if the credential request fails.
     public func signMessage(message: String) async throws -> SignResult {
         guard let hash = Utilities.hashPersonalMessage(Data(message.utf8)) else {
             throw BaseError(shortMessage: "Failed to hash message: \"\(message)\"")
@@ -86,6 +111,13 @@ public struct WebAuthnAccount: Account {
         return try await sign(hex: hex)
     }
 
+    /// Signs the given typed data.
+    ///
+    /// - Parameters:
+    ///   - typedData: The typed data to sign.
+    ///
+    /// - Returns: The result of the signing operation.
+    /// - Throws: A `BaseError` if the credential request fails.
     public func signTypedData(typedData: String) async throws -> SignResult {
         guard let typedDataObj = try? EIP712Parser.parse(typedData),
               let hash = try? typedDataObj.signHash() else {
@@ -102,7 +134,7 @@ extension WebAuthnAccount {
     // MARK: Internal Usage
 
     static func adjustSignature(_ signature: (r: Data, s: Data)) -> (Data, Data) {
-        let P256_N = BigUInt("FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551", radix: 16)!
+        let P256_N = BigUInt("FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551", radix: 16) ?? .zero
         let P256_N_DIV_2 = P256_N >> 1
         let sBigUInt = BigUInt(signature.s)
 

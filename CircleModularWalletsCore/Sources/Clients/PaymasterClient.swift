@@ -18,8 +18,17 @@
 
 import Foundation
 
+/// A Paymaster Client is an interface to interact with ERC-7677 compliant Paymasters and provides the ability to sponsor User Operation gas fees.
 public class PaymasterClient: Client, PaymasterRpcApi {
 
+    /// Retrieves Paymaster data for a given User Operation.
+    ///
+    /// - Parameters:
+    ///   - userOp: The User Operation to retrieve Paymaster data for. Type `T` must be a subclass of `UserOperation`.
+    ///   - entryPoint: The EntryPoint address to target.
+    ///   - context: Paymaster-specific fields (optional).
+    ///
+    /// - Returns: Paymaster-related User Operation properties.
     public func getPaymasterData<T: UserOperation>(
         userOp: T,
         entryPoint: EntryPoint,
@@ -28,6 +37,14 @@ public class PaymasterClient: Client, PaymasterRpcApi {
         try await self.getPaymasterData(transport: transport, userOp: userOp, entryPoint: entryPoint, chainId: chain.chainId, context: context)
     }
 
+    /// Retrieves Paymaster stub data for a given User Operation.
+    ///
+    /// - Parameters:
+    ///   - userOp: The User Operation to retrieve Paymaster stub data for. Type `T` must be a subclass of `UserOperation`.
+    ///   - entryPoint: The EntryPoint address to target.
+    ///   - context: Paymaster-specific fields (optional).
+    ///
+    /// - Returns: Paymaster-related User Operation properties.
     public func getPaymasterStubData<T: UserOperation>(
         userOp: T,
         entryPoint: EntryPoint,

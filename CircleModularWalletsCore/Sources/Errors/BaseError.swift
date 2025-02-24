@@ -25,6 +25,7 @@ struct BaseErrorParameters {
     var name: String = "BaseError"
 }
 
+@_documentation(visibility: private)
 public class BaseError: Error, CustomStringConvertible, @unchecked Sendable {
 
     public let shortMessage: String
@@ -59,7 +60,7 @@ public class BaseError: Error, CustomStringConvertible, @unchecked Sendable {
         var messageParts: [String] = []
         messageParts.append("\(args.name): \(shortMessage.isEmpty ? "An error occurred." : shortMessage)")
 
-        if !messageParts.last!.hasSuffix("\n") {
+        if let messageLastPart = messageParts.last,  !messageLastPart.hasSuffix("\n") {
             messageParts[messageParts.count - 1] += "\n"
         }
 
@@ -67,7 +68,7 @@ public class BaseError: Error, CustomStringConvertible, @unchecked Sendable {
             messageParts.append(contentsOf: metaMessages)
         }
 
-        if !messageParts.last!.hasSuffix("\n") {
+        if let messageLastPart = messageParts.last,  !messageLastPart.hasSuffix("\n") {
             messageParts[messageParts.count - 1] += "\n"
         }
 

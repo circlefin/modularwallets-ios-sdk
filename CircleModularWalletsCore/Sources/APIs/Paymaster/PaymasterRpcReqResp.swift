@@ -19,22 +19,23 @@
 import Foundation
 import BigInt
 
+/// Data structure representing the result of getting paymaster data.
 public struct GetPaymasterDataResult: Codable {
 
-    /// Paymaster address (entrypoint v0.7)
+    /// Paymaster address (entrypoint v0.7).
     public let paymaster: String?
 
-    /// Paymaster data (entrypoint v0.7)
+    /// Paymaster data (entrypoint v0.7).
     public let paymasterData: String?
 
-    /// Paymaster post-op gas (entrypoint v0.7)
+    /// Combined paymaster and data (entrypoint v0.6).
+    public let paymasterAndData: String?
+
+    /// Gas limit for post-operation of paymaster (entrypoint v0.7).
     public let paymasterPostOpGasLimit: BigInt?
 
-    /// Paymaster validation gas (entrypoint v0.7)
+    /// Gas limit for verification of paymaster (entrypoint v0.7).
     public let paymasterVerificationGasLimit: BigInt?
-
-    /// Paymaster and data (entrypoint v0.6)
-    public let paymasterAndData: String?
 
     enum CodingKeys: CodingKey {
         case paymaster
@@ -63,31 +64,37 @@ public struct GetPaymasterDataResult: Codable {
     }
 }
 
+/// Data structure representing the result of getting paymaster stub data.
 public struct GetPaymasterStubDataResult: Codable {
 
-    /// Paymaster address (entrypoint v0.7)
+    /// Paymaster address (entrypoint v0.7).
     public let paymaster: String?
 
-    /// Paymaster data (entrypoint v0.7)
+    /// Paymaster data (entrypoint v0.7).
     public let paymasterData: String?
 
-    /// Paymaster post-op gas (entrypoint v0.7)
-    public let paymasterPostOpGasLimit: BigInt?
-
-    /// Paymaster validation gas (entrypoint v0.7)
-    public let paymasterVerificationGasLimit: BigInt?
-
-    /// Paymaster and data (entrypoint v0.6)
+    /// Combined paymaster and data (entrypoint v0.6).
     public let paymasterAndData: String?
 
-    /// Indicates that the caller does not need to call pm_getPaymasterData
+    /// Gas limit for post-operation of paymaster (entrypoint v0.7).
+    public let paymasterPostOpGasLimit: BigInt?
+
+    /// Gas limit for verification of paymaster (entrypoint v0.7).
+    public let paymasterVerificationGasLimit: BigInt?
+
+    /// Indicates if the caller does not need to call `pm_getPaymasterData`.
     public let isFinal: Bool?
 
-    /// Sponsor info
+    /// Sponsor information.
     public let sponsor: SponsorInfo?
 
+    /// Data structure representing sponsor information.
     public struct SponsorInfo: Codable {
+
+        /// Sponsor name.
         public let name: String
+
+        /// Sponsor icon (optional).
         public let icon: String?
     }
 

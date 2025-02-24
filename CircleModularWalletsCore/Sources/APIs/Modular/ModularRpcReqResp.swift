@@ -23,17 +23,39 @@ struct GetAddressReq: Encodable {
     let metadata: Metadata
 }
 
+/// Represents the Circle modular wallet.
 struct ModularWallet: Codable, Sendable {
+
+    /// The wallet id.
     var id: String?
+
+    /// The wallet address.
     var address: String?
+
+    /// The blockchain.
     var blockchain: String?
+
+    /// The state.
     var state: String?
+
+    /// The name of the wallet.
     var name: String?
+
+    /// The SCA core.
     var scaCore: String?
+
+    /// The SCA configuration.
     var scaConfiguration: ScaConfiguration?
+
+    /// The create date.
     var createDate: String?
+
+    /// The last update date.
     var updateDate: String?
 
+    /// Gets the initialization code from the SCA configuration.
+    ///
+    /// - Returns: The initialization code if present, `nil` otherwise.
     func getInitCode() -> String? {
         return scaConfiguration?.initCode
     }

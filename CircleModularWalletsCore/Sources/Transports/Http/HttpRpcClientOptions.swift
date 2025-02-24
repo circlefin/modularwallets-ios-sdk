@@ -18,11 +18,13 @@
 
 import Foundation
 
+/// Data structure representing HTTP RPC client options.
 public struct HttpRpcClientOptions {
 
-    let headers: [String: String]
+    /// Optional headers to include in the HTTP requests.
+    public let headers: [String: String]
 
-    public init(headers: [String : String]) {
+    public init(headers: [String: String]) {
         self.headers = headers
     }
 }

@@ -22,13 +22,49 @@ import web3swift
 import BigInt
 import CryptoKit
 
+/// A utility struct providing essential helper methods for encoding, verification, and data processing
+/// related to blockchain operations, WebAuthn integration, and ABI handling.
+///
+/// The `Utils` struct serves as a centralized collection of static functions that simplify common
+/// operations such as encoding ABI functions, verifying digital signatures, generating hashes for user
+/// operations, and creating calldata for blockchain transactions.
+///
+/// ## Features
+/// - Encode function data for ABI-based smart contracts.
+/// - Verify digital signatures using WebAuthn public keys.
+/// - Generate hashes for user operations to ensure data integrity.
+/// - Encode ERC20 token transfers and general contract executions into calldata.
+/// - Support for common blockchain standards like EIP-1559 and WebAuthn.
+///
+/// ## Use Cases
+/// - Simplify integration with smart contract operations in decentralized applications.
+/// - Facilitate secure authentication workflows using WebAuthn.
+/// - Enable seamless user operation handling for blockchain networks.
+///
+/// ### Example Usage
+/// ```swift
+/// let encodedData = Utils.encodeFunctionData(
+///     functionName: "transfer",
+///     abiJson: tokenABI,
+///     args: ["0xRecipientAddress", "1000"]
+/// )
+///
+/// let isVerified = try Utils.verify(
+///     hash: "0xHash",
+///     publicKey: "0xPublicKey",
+///     signature: "0xSignature",
+///     webauthn: webAuthnData
+/// )
+/// ```
 public struct Utils {
 
     /// Encode abi function
+    ///
     /// - Parameters:
     ///   - functionName: ABI function name
     ///   - abiJson: ABI json
     ///   - args: Input array for the ABI function
+    ///
     /// - Returns: Encoded ABI function
     public static func encodeFunctionData(functionName: String,
                                           abiJson: String,
@@ -45,11 +81,13 @@ public struct Utils {
     }
 
     /// Verifies a signature using the credential public key and the hash which was signed.
+    ///
     /// - Parameters:
     ///   - hash: (hex) string
     ///   - publicKey: (serialized hex) string
     ///   - signature: (serialized hex) string
     ///   - webauthn: WebAuthnData
+    ///
     /// - Returns: Verification success or failure
     public static func verify(hash: String,
                               publicKey: String,
@@ -103,6 +141,14 @@ public struct Utils {
         }
     }
 
+    /// Generates the hash of a user operation.
+    ///
+    /// - Parameters:
+    ///   - chainId: The ID of the blockchain network.
+    ///   - entryPointAddress: The address of the entry point contract. Defaults to the address of `EntryPoint.V07`.
+    ///   - userOp: The user operation to hash.
+    ///
+    /// - Returns: The hash of the user operation as a hex string.
     public static func getUserOperationHash(
         chainId: Int,
         entryPointAddress: String = ENTRYPOINT_V07_ADDRESS,
@@ -226,9 +272,17 @@ public struct Utils {
         return HexUtils.dataToHex(userOpHashed)
     }
 
+    /// Encodes an ERC20 token transfer into calldata for executing a User Operation.
+    ///
+    /// - Parameters:
+    ///   - to: The recipient address.
+    ///   - token: The token contract address or the name of the `Token` enum.
+    ///   - amount: The amount to transfer.
+    ///
+    /// - Returns: The encoded transfer abi and contract address.
     public static func encodeTransfer(to: String,
                                       token: String,
-                                      amount: BigInt) -> String {
+                                      amount: BigInt) -> EncodeTransferResult {
         let abiParameters: [Any] = [to, amount]
 
         let encodedAbi = self.encodeFunctionData(
@@ -237,13 +291,19 @@ public struct Utils {
             args: abiParameters
         )
 
-        let arg = EncodeCallDataArg(to: CONTRACT_ADDRESS[token] ?? token,
-                                    value: BigInt.zero,
-                                    data: encodedAbi)
-
-        return encodeCallData(arg: arg)
+        return EncodeTransferResult(data: encodedAbi ?? "0x",
+                                    to: CONTRACT_ADDRESS[token] ?? token)
     }
 
+    /// Encodes a contract execution into calldata for executing a User Operation.
+    ///
+    /// - Parameters:
+    ///   - to: The recipient address.
+    ///   - abiSignature: The ABI signature of the function.
+    ///   - args: The arguments for the function call.
+    ///   - value: The value to send with the transaction.
+    ///
+    /// - Returns: The encoded call data.
     public static func encodeContractExecution(
         to: String,
         abiSignature: String,
@@ -278,42 +338,6 @@ public struct Utils {
 extension Utils {
     
     private typealias InOut = ABI.Element.InOut
-
-    /// This is an imitation of the structure and methods of ABI.Input, as its
-    /// original structure and methods are intended for internal use within
-    /// a third-party library.
-    private struct ABIInput {
-        var name: String?
-        var type: String
-        var components: [ABIInput]?
-
-        func parse() throws -> InOut {
-            let name = self.name ?? ""
-            let parameterType = try ABITypeParser.parseTypeString(self.type)
-            if case .tuple(types: _) = parameterType {
-                let components = try self.components?.compactMap({ (inp: ABIInput) throws -> ABI.Element.ParameterType in
-                    let input = try inp.parse()
-                    return input.type
-                })
-                let type = ABI.Element.ParameterType.tuple(types: components!)
-                let nativeInput = InOut(name: name, type: type)
-                return nativeInput
-            } else if case .array(type: .tuple(types: _), length: _) = parameterType {
-                let components = try self.components?.compactMap({ (inp: ABIInput) throws -> ABI.Element.ParameterType in
-                    let input = try inp.parse()
-                    return input.type
-                })
-                let tupleType = ABI.Element.ParameterType.tuple(types: components!)
-
-                let newType: ABI.Element.ParameterType = .array(type: tupleType, length: 0)
-                let nativeInput = InOut(name: name, type: newType)
-                return nativeInput
-            } else {
-                let nativeInput = InOut(name: name, type: parameterType)
-                return nativeInput
-            }
-        }
-    }
 
     // MARK: Internal Usage
 
@@ -422,95 +446,142 @@ extension Utils {
         return (factoryAddress, factoryData)
     }
 
-    /// It can handle 1 level (depth=1) tuples of abiSignature
-    /// For future work, it should be able to handle n-level (depth = n) tuples
     static func parseParameterTypes(_ typesString: String) -> [ABI.Element.InOut] {
-        var types: [InOut] = []
-        var currentTypeStr = ""
-        var currentOriType: ABIInput?
-        var depth = 0
-
-        for char in typesString {
-            switch char {
+        guard !typesString.isEmpty else {
+            return []
+        }
+        var currentTypeString = ""
+        var types = [ABI.Element.InOut]()
+        var tupleStack = [ABI.Element.ParameterType]()
+        var arrayBalance = 0
+        var tempTuple: ABI.Element.ParameterType?
+        
+        func popLastTupleFormStack() -> [ABI.Element.ParameterType]? {
+            if let parameterType = tupleStack.popLast() {
+                switch parameterType {
+                case .tuple(types: let elements):
+                    return elements
+                default:
+                    // Tuple stack could only store tuple, if not just return nil
+                    return nil
+                }
+            } else {
+                // Not a valid ABI signature
+                return nil
+            }
+        }
+        
+        for i in 0..<typesString.count {
+            switch Array(typesString)[i] {
             case "(":
-                depth += 1
+                tupleStack.append(.tuple(types: []))
             case ")":
-                depth -= 1
-                if depth == 0 {
-                    if currentOriType == nil {
-                        currentOriType = .init(type: currentTypeStr)
-                        if let inOut = try? currentOriType?.parse() {
-                            types.append(inOut)
-                        }
-                    } else {
-                        if currentOriType?.components == nil {
-                            currentOriType?.components = [.init(type: currentTypeStr)]
-                        } else {
-                            currentOriType?.components?.append(.init(type: currentTypeStr))
-                        }
-
-                        if let inOut = try? currentOriType?.parse() {
-                            types.append(inOut)
-                        }
+                if currentTypeString.isEmpty {
+                    guard let elements = popLastTupleFormStack() else {
+                        return []
                     }
-                    currentTypeStr = ""
-                    currentOriType = nil
+                    let tuple = ABI.Element.ParameterType.tuple(types: elements)
+                    // check next char is array or not
+                    if (i + 1) < typesString.count && Array(typesString)[i + 1] == "[" {
+                        tempTuple = tuple
+                        continue
+                    }
+                    
+                    if let elements = popLastTupleFormStack() {
+                        tupleStack.append(.tuple(types: elements + [tuple]))
+                    } else {
+                        let type = ABI.Element.InOut(name: "", type: tuple)
+                        types.append(type)
+                    }
+                    continue
+                }
+                
+                guard let parsedABIType = try? ABITypeParser.parseTypeString(currentTypeString),
+                      let elements = popLastTupleFormStack() else {
+                    // Parse error
+                    return []
+                }
+                currentTypeString = ""
+                let tuple = ABI.Element.ParameterType.tuple(types: elements + [parsedABIType])
+                // check next char is array or not
+                if (i + 1) < typesString.count && Array(typesString)[i + 1] == "[" {
+                    tempTuple = tuple
+                    continue
+                }
+                
+                if let elements = popLastTupleFormStack() {
+                    tupleStack.append(.tuple(types: elements + [tuple]))
                 } else {
-                    if currentOriType == nil {
-                        currentOriType = .init(type: "tuple")
-                    }
-
-                    if currentOriType?.components == nil {
-                        currentOriType?.components = [.init(type: currentTypeStr)]
-                    } else {
-                        currentOriType?.components?.append(.init(type: currentTypeStr))
-                    }
+                    let type = ABI.Element.InOut(name: "", type: tuple)
+                    types.append(type)
                 }
             case ",":
-                if depth == 0 {
-                    if !currentTypeStr.isEmpty {
-                        if currentOriType == nil {
-                            currentOriType = .init(type: currentTypeStr)
-                            if let inOut = try? currentOriType?.parse() {
-                                types.append(inOut)
-                                currentOriType = nil
-                            }
-                        } else {
-                            if currentOriType?.components == nil {
-                                currentOriType?.components = [.init(type: currentTypeStr)]
-                            } else {
-                                currentOriType?.components?.append(.init(type: currentTypeStr))
-                            }
-                        }
-                    }
+                if currentTypeString.isEmpty {
+                    continue
+                }
+                guard let parsedABIType = try? ABITypeParser.parseTypeString(currentTypeString) else {
+                    // Parse error
+                    return []
+                }
+                if let elements = popLastTupleFormStack() {
+                    let tuple = ABI.Element.ParameterType.tuple(types: elements + [parsedABIType])
+                    tupleStack.append(tuple)
                 } else {
-                    if currentOriType == nil {
-                        currentOriType = .init(type: "tuple")
-                    }
-
-                    if currentOriType?.components == nil {
-                        currentOriType?.components = [.init(type: currentTypeStr)]
+                    let type = ABI.Element.InOut(name: "", type: parsedABIType)
+                    types.append(type)
+                }
+                currentTypeString = ""
+            case "[":
+                arrayBalance += 1
+            case "]":
+                arrayBalance -= 1
+                if arrayBalance != 0 {
+                    return []
+                }
+                
+                if let tuple = tempTuple {
+                    let arr = ABI.Element.ParameterType.array(type: tuple, length: 0)
+                    if let elements = popLastTupleFormStack() {
+                        let tuple = ABI.Element.ParameterType.tuple(types: elements + [arr])
+                        tupleStack.append(tuple)
                     } else {
-                        currentOriType?.components?.append(.init(type: currentTypeStr))
+                        let type = ABI.Element.InOut(name: "", type: arr)
+                        types.append(type)
+                    }
+                    tempTuple = nil
+                } else {
+                    guard let parsedABIType = try? ABITypeParser.parseTypeString(currentTypeString) else {
+                        return []
+                    }
+                    currentTypeString = ""
+                    let arr = ABI.Element.ParameterType.array(type: parsedABIType, length: 0)
+                    if let elements = popLastTupleFormStack() {
+                        let tuple = ABI.Element.ParameterType.tuple(types: elements + [arr])
+                        tupleStack.append(tuple)
+                    } else {
+                        let type = ABI.Element.InOut(name: "", type: arr)
+                        types.append(type)
                     }
                 }
-
-                currentTypeStr = ""
             default:
-                currentTypeStr.append(char)
+                currentTypeString.append(Array(typesString)[i])
             }
         }
-
-        if !currentTypeStr.isEmpty {
-            if currentOriType == nil {
-                currentOriType = .init(type: currentTypeStr)
-                if let inOut = try? currentOriType?.parse() {
-                    types.append(inOut)
-                    currentOriType = nil
-                }
+        
+        // When there is no tuple
+        if !currentTypeString.isEmpty {
+            guard let parsedABIType = try? ABITypeParser.parseTypeString(currentTypeString) else {
+                return []
             }
+            if popLastTupleFormStack() != nil {
+                // In this case, there's an opening parenthesis but no closing parenthesis.
+                // test case "(string"
+                return []
+            }
+            let type = ABI.Element.InOut(name: "", type: parsedABIType)
+            types.append(type)
         }
-
+        
         return types
     }
 
@@ -647,7 +718,7 @@ extension Utils {
         let rLength = Int(signatureData[offset])
         offset += 1
 
-        let r = signatureData[offset..<offset+rLength]
+        let r = signatureData[offset..<offset + rLength]
         offset += rLength
 
         // 6. Similar to r, it checks for the INTEGER identifier (0x02), reads the length of s,
@@ -661,7 +732,7 @@ extension Utils {
         let sLength = Int(signatureData[offset])
         offset += 1
 
-        let s = signatureData[offset..<offset+sLength]
+        let s = signatureData[offset..<offset + sLength]
 
         return (r, s)
     }
@@ -815,7 +886,7 @@ extension Utils: PublicRpcApi {
                                             outputs: [output],
                                             constant: false,
                                             payable: false)
-        let params: [Any] = [address, 0]
+        let params: [Any] = [address, key]
 
         guard let toAddress = EthereumAddress(entryPoint.address) else {
             throw BaseError(shortMessage: "Invalid 'to' address (\(entryPoint.address))")

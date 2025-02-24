@@ -18,57 +18,8 @@
 
 import Foundation
 
-public enum MainnetToken: String {
-    case USDT
-    case BNB
-    case USDC
-    case stETH
-    case TONCOIN
-    case LINK
-    case wstETH
-    case SHIB
-    case WBTC
-    case WETH
-    case DOT
-    case BlurPool
-    case BGB
-    case LEO
-    case UNI
-    case PEPE
-    case weETH
-    case NEAR
-    case USDe
-    case USDS
-    
-    public var chainId: Int {
-        return Mainnet.chainId
-    }
-    
-    public var name: String {
-        return "Mainnet_\(self.rawValue)"
-    }
-}
-
 public enum PolygonToken: String {
-    case WETH
-    case USDT
-    case BNB
-    case SOL
     case USDC
-    case USDC_e
-    case BUSD
-    case AVAX
-    case LINK
-    case SHIB
-    case WBTC
-    case LEO
-    case UNI
-    case AAVE
-    case CRO
-    case RNDR
-    case DAI
-    case OM
-    case FET
     
     public var chainId: Int {
         return Polygon.chainId
@@ -80,45 +31,15 @@ public enum PolygonToken: String {
 }
 
 public enum ArbitrumToken: String {
-    case USDT
-    case USDC_e
     case USDC
-    case LINK
-    case wstETH
-    case WBTC
-    case WETH
-    case UNI
-    case PEPE
-    case USDe
-    case DAI
     case ARB
-    case ENA
-    case cbBTC
-    case GRT
-    case USD0
-    case LDO
-    case PYTH
-    case ezETH
-    case CRV
-    
+
     public var chainId: Int {
         return Arbitrum.chainId
     }
     
     public var name: String {
         return "Arbitrum_\(self.rawValue)"
-    }
-}
-
-public enum SepoliaToken: String {
-    case USDC
-    
-    public var chainId: Int {
-        return Sepolia.chainId
-    }
-    
-    public var name: String {
-        return "Sepolia_\(self.rawValue)"
     }
 }
 
