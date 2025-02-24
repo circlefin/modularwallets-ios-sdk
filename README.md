@@ -55,14 +55,14 @@ Normally you'll want to depend on the `CircleModularWalletsCore` target:
 >       url: clientUrl
 >     )
 > 
->     let client = BundlerClient( 
+>     let bundlerClient = BundlerClient( 
 >       chain: Sepolia,
 >       transport: modularTrasport
 >     )
 >  
 >     // 4. Create SmartAccout(CircleSmartAccount) and set the WebAuthn account as the owner
 >     let smartAccount = try await toCircleSmartAccount(
->       client: client,
+>       client: bundlerClient,
 >       owner: webAuthnAccount
 >     )
 > 
