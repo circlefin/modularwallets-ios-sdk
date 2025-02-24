@@ -21,6 +21,7 @@ import Foundation
 struct EmptyParam: Encodable {}
 let emptyParams = [EmptyParam]()
 
+/// Data structure for RPC request
 public struct RpcRequest<P: Encodable>: Encodable {
     let id: Int = Int(Date().timeIntervalSince1970 * 1000)
     let jsonrpc: String = "2.0"
@@ -28,6 +29,7 @@ public struct RpcRequest<P: Encodable>: Encodable {
     let params: P?
 }
 
+/// Data structure for RPC response
 public struct RpcResponse<R: Decodable>: Decodable {
     let id: Int
     let jsonrpc: String

@@ -18,17 +18,12 @@
 
 import Foundation
 
-public func toModularTransport(clientKey: String,
-                               url: String) -> ModularTransport {
-    return .init(clientKey: clientKey, url: url)
+/// The return type for encodeTransfer.
+public struct EncodeTransferResult {
+
+    /// The encoded data.
+    public let data: String
+
+    /// The token address.
+    public let to: String
 }
-
-public class ModularTransport: HttpTransport {
-
-    convenience init(clientKey: String, url: String) {
-        let options = HttpRpcClientOptions(headers: ["Authorization" : "Bearer \(clientKey)"])
-        self.init(url: url, options: options)
-    }
-}
-
-extension ModularTransport: ModularRpcApi { }

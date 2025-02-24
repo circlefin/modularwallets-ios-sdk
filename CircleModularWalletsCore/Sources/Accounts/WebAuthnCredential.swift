@@ -20,8 +20,13 @@ import Foundation
 import AuthenticationServices
 import Web3Core
 
+/// Enum representing the WebAuthn modes.
 public enum WebAuthnMode {
+
+    /// Mode for registering a new credential.
     case register
+
+    /// Mode for logging in with an existing credential.
     case login
 }
 
@@ -34,6 +39,16 @@ enum WebAuthnCredentialError: Error {
     case getPublicKeyFailed
 }
 
+/// Logs in or registers a user and returns a ``WebAuthnCredential``.
+///
+/// - Parameters:
+///   - transport: The transport used to communicate with the RP API.
+///   - userName: The username of the user (required for `WebAuthnMode.Register`).
+///   - mode: The mode of the WebAuthn credential.
+///
+/// - Returns: The created `WebAuthnCredential`.
+///
+/// - Throws: A `BaseError` if `userName` is `nil` for `WebAuthnMode.Register`.
 public func toWebAuthnCredential(
     transport: Transport,
     userName: String? = nil,
@@ -53,18 +68,19 @@ public func toWebAuthnCredential(
     }
 }
 
+/// Data structure representing a P-256 WebAuthn Credential.
 public struct WebAuthnCredential: RpRpcApi, Sendable {
 
-    /// Credential ID property
+    /// The unique identifier for the credential.
     public let id: String
 
-    /// PublicKey property, (serialized hex) string
+    /// The public key associated with the credential. (serialized hex string)
     public let publicKey: String
 
-    /// Web Authentication API returned PublicKeyCredential object
+    /// The PublicKeyCredential object returned by the Web Authentication API.
     public let raw: PublicKeyCredential
 
-    /// Relying party identifier
+    /// The relying party identifier.
     public let rpId: String
 
     static func register(transport: Transport,
@@ -110,7 +126,7 @@ public struct WebAuthnCredential: RpRpcApi, Sendable {
         }
     }
 
-    static func login(transport: Transport) async throws ->  WebAuthnCredential {
+    static func login(transport: Transport) async throws -> WebAuthnCredential {
         do {
             /// Step 1. RP getLoginOptions
             logger.webAuthn.debug("Login")

@@ -16,6 +16,6 @@ extension Duration {
     /// The value of a positive duration in milliseconds, suitable to be encoded in WebAuthn types.
     var milliseconds: UInt64 {
         let (seconds, attoseconds) = self.components
-        return UInt64(seconds * 1000) + UInt64(attoseconds/1_000_000_000_000_000)
+        return UInt64(seconds * 1000) + UInt64(attoseconds / 1_000_000_000_000_000)
     }
 }

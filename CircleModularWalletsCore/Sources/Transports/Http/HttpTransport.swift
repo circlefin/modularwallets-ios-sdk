@@ -18,16 +18,7 @@
 
 import Foundation
 
-public func http(url: String, options: HttpRpcClientOptions? = nil) -> HttpTransport {
-    return .init(url: url, options: options)
-}
-
-public func toPasskeyTransport(clientKey: String,
-                          url: String = CIRCLE_BASE_URL) -> HttpTransport {
-    let options = HttpRpcClientOptions(headers: ["Authorization" : "Bearer \(clientKey)"])
-    return .init(url: url, options: options)
-}
-
+/// The http Transport connects to a JSON-RPC API via HTTP.
 public class HttpTransport: Transport {
 
     let session: URLSession
@@ -40,7 +31,7 @@ public class HttpTransport: Transport {
         self.options = options
     }
 
-    public func request<P, R>(_ rpcRequest: RpcRequest<P>) async throws -> RpcResponse<R> where P : Encodable, R : Decodable {
+    public func request<P, R>(_ rpcRequest: RpcRequest<P>) async throws -> RpcResponse<R> where P: Encodable, R: Decodable {
         do {
             let urlRequest = try toUrlRequest(rpcRequest, urlString: self.url)
             return try await send(urlRequest)
@@ -145,7 +136,7 @@ extension HttpTransport {
             throw HttpError.invalidResponse
         }
         switch httpResponse.statusCode {
-        case 200...299: 
+        case 200...299:
             break
         default: throw
             HttpError.unknownError(statusCode: httpResponse.statusCode)

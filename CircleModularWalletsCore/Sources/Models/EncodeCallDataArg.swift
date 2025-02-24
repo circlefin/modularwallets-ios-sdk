@@ -19,25 +19,35 @@
 import Foundation
 import BigInt
 
+/// Data structure representing arguments required for encoding call data.
+///
+/// Used in `SmartAccount.encodeCalls`:
+/// - `to`: Required.
+/// - `value`: Optional, defaults to 0.
+/// - `data`: Optional, if no data returns “0x”.
+///
+/// Used in `EncodeFunctionData`:
+/// - `abiJson`: Required.
+/// - `functionName`: Required.
+/// - `args`: Optional.
 public struct EncodeCallDataArg: Encodable {
 
-    /// In SmartAccount.encodeCalls
-    ///
-    /// - to: required
-    /// - value: optional, default 0
-    /// - data: optional, If no data returns “0x”
-    ///
-    /// In EncodeFunctionData
-    ///
-    /// - abiJson: required
-    /// - functionName: required
-    /// - args: optional
-
+    /// The recipient address.
     public let to: String
+
+    /// The value to be sent with the transaction.
     public let value: BigInt?
+
+    /// The call data in hexadecimal format.
     public let data: String?
+
+    /// The ABI definition in JSON format.
     public let abiJson: String?
+
+    /// The function name.
     public let functionName: String?
+
+    /// The arguments for the function call.
     public let args: [AnyEncodable]?
 
     public init(to: String, value: BigInt? = nil,

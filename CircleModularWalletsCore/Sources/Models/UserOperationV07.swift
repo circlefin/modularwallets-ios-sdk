@@ -19,23 +19,52 @@
 import Foundation
 import BigInt
 
-// UserOperation v0.7
+/// Data class representing a user operation for version 0.7.
 public class UserOperationV07: UserOperation {
+
+    /// The address of the sender.
     public var sender: String?
+
+    /// The nonce of the operation.
     public var nonce: BigInt?
+
+    /// The data to be sent in the call.
     public var callData: String?
+
+    /// The gas limit for the call.
     public var callGasLimit: BigInt?
+
+    /// The gas limit for verification.
     public var verificationGasLimit: BigInt?
+
+    /// The gas used before verification.
     public var preVerificationGas: BigInt?
+
+    /// The maximum priority fee per gas.
     public var maxPriorityFeePerGas: BigInt?
+
+    /// The maximum fee per gas.
     public var maxFeePerGas: BigInt?
+
+    /// The signature of the operation.
     public var signature: String?
 
+    /// The factory address.
     public var factory: String?
+
+    /// The data for the factory.
     public var factoryData: String?
+
+    /// The paymaster address.
     public var paymaster: String?
+
+    /// The gas limit for paymaster verification.
     public var paymasterVerificationGasLimit: BigInt?
+
+    /// The gas limit for paymaster post-operation.
     public var paymasterPostOpGasLimit: BigInt?
+
+    /// The data for the paymaster.
     public var paymasterData: String?
 
     public init(sender: String? = nil, nonce: BigInt? = nil, callData: String? = nil, callGasLimit: BigInt? = nil, verificationGasLimit: BigInt? = nil, preVerificationGas: BigInt? = nil, maxPriorityFeePerGas: BigInt? = nil, maxFeePerGas: BigInt? = nil, signature: String? = nil, factory: String? = nil, factoryData: String? = nil, paymaster: String? = nil, paymasterVerificationGasLimit: BigInt? = nil, paymasterPostOpGasLimit: BigInt? = nil, paymasterData: String? = nil) {

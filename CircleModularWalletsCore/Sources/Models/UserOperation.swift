@@ -23,15 +23,34 @@ public protocol Copyable: AnyObject {
     func copy() -> Self
 }
 
+/// Protocol representing a user operation.
 public protocol UserOperation: Codable, NSCopying, Copyable {
+
+    /// The address of the sender.
     var sender: String? { get set }
+
+    /// The nonce of the operation.
     var nonce: BigInt? { get set }
+
+    /// The data to be sent in the call.
     var callData: String? { get set }
+
+    /// The gas limit for the call.
     var callGasLimit: BigInt? { get set }
+
+    /// The gas limit for verification.
     var verificationGasLimit: BigInt? { get set }
+
+    /// The gas used before verification.
     var preVerificationGas: BigInt? { get set }
+
+    /// The maximum priority fee per gas.
     var maxPriorityFeePerGas: BigInt? { get set }
+
+    /// The maximum fee per gas.
     var maxFeePerGas: BigInt? { get set }
+
+    /// The signature of the operation.
     var signature: String? { get set }
 }
 

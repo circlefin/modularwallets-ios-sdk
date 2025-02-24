@@ -43,10 +43,17 @@ struct EthCallParams: Encodable {
     }
 }
 
+/// Response model for estimating fees per gas.
 /// Result for ``PublicRpcApi/estimateFeesPerGas(transport:feeValuesType:)``
 public struct EstimateFeesPerGasResult: Encodable {
+
+    /// Total fee per gas in wei (gasPrice/baseFeePerGas + maxPriorityFeePerGas).
     public let maxFeePerGas: BigInt? // eip1559
+
+    /// Max priority fee per gas (in wei).
     public let maxPriorityFeePerGas: BigInt? // eip1559
+
+    /// Legacy gas price (optional, usually undefined for EIP-1559).
     public let gasPrice: BigInt? // legacy
 
     init(maxFeePerGas: BigInt?, maxPriorityFeePerGas: BigInt?, gasPrice: BigInt? = nil) {

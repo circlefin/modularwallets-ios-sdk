@@ -27,9 +27,7 @@ import web3swift
 ///   - client: The client used to interact with the blockchain.
 ///   - owner: The owner account associated with the Circle smart account.
 ///   - version: The version of the Circle smart account. Default is CIRCLE_SMART_ACCOUNT_VERSION_V1.
-///   - name: The wallet name assigned to the newly registered account defaults to the format "passkey-yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
-///
-/// - Throws: BaseError if there are any problems during the wallet creation process.
+///   - name: The wallet name assigned to the newly registered account defaults to the format: "passkey-yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
 ///
 /// - Returns: The created Circle smart account.
 public func toCircleSmartAccount<A: Account>(
@@ -43,6 +41,7 @@ public func toCircleSmartAccount<A: Account>(
     return try await .init(client: client, owner: owner, version: version, name: name)
 }
 
+/// A Circle smart account.
 public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable where A.T == SignResult {
     public let client: Client
     public let entryPoint: EntryPoint
@@ -51,6 +50,13 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
     private var deployed: Bool = false
     private let nonceManager = NonceManager(source: NonceManagerSourceImpl())
 
+    /// Initialize function for CircleSmartAccount
+    ///
+    /// - Parameters:
+    ///   - client: The client used to interact with the blockchain.
+    ///   - owner: The owner account associated with the Circle smart account.
+    ///   - wallet: The created wallet information.
+    ///   - entryPoint: The entry point for the smart account. Default is ``EntryPoint.v07``.
     init(client: Client, owner: A, wallet: ModularWallet, entryPoint: EntryPoint = .v07) {
         self.client = client
         self.owner = owner
@@ -76,6 +82,7 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
         self.init(client: client, owner: owner, wallet: wallet)
     }
 
+    /// Configuration for the user operation.
     public var userOperation: UserOperationConfiguration? {
         get async {
             let minimumVerificationGasLimit = SmartAccountUtils.getMinimumVerificationGasLimit(
@@ -86,14 +93,14 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
             let config = UserOperationConfiguration { userOperation in
                 let verificationGasLimit = BigInt(minimumVerificationGasLimit)
                 let maxGasLimit = max(verificationGasLimit, userOperation.verificationGasLimit ?? BigInt(0))
-                
+
                 return EstimateUserOperationGasResult(preVerificationGas: nil,
                                                       verificationGasLimit: maxGasLimit,
                                                       callGasLimit: nil,
                                                       paymasterVerificationGasLimit: nil,
                                                       paymasterPostOpGasLimit: nil)
             }
-            
+
             return config
         }
     }
@@ -119,10 +126,21 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
     }
 
     public func getNonce(key: BigInt?) async throws -> BigInt {
-        let _key = key ?? nonceManager.consume(
-            params: FunctionParameters(address: getAddress(),
-                                       chainId: client.chain.chainId)
-        )
+        let _key: BigInt
+        if let key = key {
+            _key = key
+        } else {
+            let _keyStr = await nonceManager.consume(
+                params: FunctionParameters(address: getAddress(),
+                                           chainId: client.chain.chainId)
+            )
+
+            guard let bigInt = BigInt(_keyStr) else {
+                throw BaseError(shortMessage: "Cannot convert BigInt(\(_keyStr) to BigInt")
+            }
+
+            _key = bigInt
+        }
 
         guard _key >= BigInt(0) else {
             throw BaseError(shortMessage: "Cannot convert negative BigInt(\(_key) to BigUInt")
@@ -288,6 +306,9 @@ extension CircleSmartAccount: PublicRpcApi {
         return wallet
     }
 
+    /// Checks if the account is deployed.
+    ///
+    /// - Returns: `true` if the account is deployed, `false` otherwise.
     private func isDeployed() async -> Bool {
         if deployed { return true }
         do {
@@ -410,7 +431,7 @@ extension CircleSmartAccount: PublicRpcApi {
     static func getModuleIdHash() -> Data {
         let message = Utils.encodePacked(["Weighted Multisig Webauthn Plugin", "1.0.0"])
 
-        return Utils.toSha3Data(message:message)
+        return Utils.toSha3Data(message: message)
     }
 
     static func getModuleTypeHash() -> Data {
@@ -421,7 +442,7 @@ extension CircleSmartAccount: PublicRpcApi {
         authenticatorDataString: String,    // Hex
         clientDataJSON: String,             // Base64URL decoded
         challengeIndex: Int,
-        typeIndex:Int,
+        typeIndex: Int,
         userVerificationRequired: Bool,
         r: BigUInt,
         s: BigUInt

@@ -72,7 +72,7 @@ public struct AuthenticatorAttestationGloballyUniqueID: Hashable, Sendable {
     public var bytes: [UInt8] { withUnsafeBytes(of: id) { Array($0) } }
     
     /// The identifier of an anonymized authenticator, set to a byte sequence of 16 zeros.
-    public static let anonymous = AuthenticatorAttestationGloballyUniqueID(bytes: Array(repeating: 0, count: Self.size))!
+    public static let anonymous = AuthenticatorAttestationGloballyUniqueID(uuid: .init(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)))
     
     /// The byte length of an encoded identifer.
     public static let size: Int = 16

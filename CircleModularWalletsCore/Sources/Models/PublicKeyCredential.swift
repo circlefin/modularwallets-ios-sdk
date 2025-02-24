@@ -18,14 +18,28 @@
 
 import Foundation
 
+/// Protocol representing a public key credential.
 public protocol PublicKeyCredential: Encodable, Sendable {
+
+    /// The unique identifier for the credential.
     var id: String { get }
+
+    /// The type of the credential.
     var type: CredentialType { get }
+
+    /// The attachment type of the authenticator.
     var authenticatorAttachment: AuthenticatorAttachment? { get }
+
+    /// The response from the authenticator.
     var response: AuthenticatorResponse { get }
+
+    /// Optional client extension results.
     var clientExtensionResults: AuthenticationExtensionsClientOutputs? { get }
 }
 
+/// Protocol representing a response from an authenticator.
 public protocol AuthenticatorResponse: Codable, Sendable {
+
+    /// The client data in JSON format.
     var clientDataJSON: URLEncodedBase64 { get }
 }

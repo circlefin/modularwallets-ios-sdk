@@ -24,6 +24,7 @@ struct RpcErrorOptions {
     var shortMessage: String
 }
 
+@_documentation(visibility: private)
 public class RpcError: BaseError, @unchecked Sendable {
     let code: Int
 
@@ -56,6 +57,7 @@ public class RpcError: BaseError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class ParseRpcError: RpcError, @unchecked Sendable {
     static let code = -32700
 
@@ -68,6 +70,7 @@ public class ParseRpcError: RpcError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class InvalidRequestRpcError: RpcError, @unchecked Sendable {
     static let code = -32600
 
@@ -80,18 +83,24 @@ public class InvalidRequestRpcError: RpcError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class MethodNotFoundRpcError: RpcError, @unchecked Sendable {
     static let code = -32601
 
     init(cause: Error, method: String? = nil) {
+        let shortMessage = method.map {
+            "The method \"\($0)\" does not exist / is not available."
+        } ?? "The method does not exist / is not available."
+
         super.init(cause: cause, options: RpcErrorOptions(
             code: MethodNotFoundRpcError.code,
             name: "MethodNotFoundRpcError",
-            shortMessage: "The method\(method != nil ? " \"\(method!)\"" : "") does not exist / is not available."
+            shortMessage: shortMessage
         ))
     }
 }
 
+@_documentation(visibility: private)
 public class InvalidParamsRpcError: RpcError, @unchecked Sendable {
     static let code = -32602
 
@@ -104,6 +113,7 @@ public class InvalidParamsRpcError: RpcError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class InternalRpcError: RpcError, @unchecked Sendable {
     static let code = -32603
 
@@ -116,6 +126,7 @@ public class InternalRpcError: RpcError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class InvalidInputRpcError: RpcError, @unchecked Sendable {
     static let code = -32000
 
@@ -128,6 +139,7 @@ public class InvalidInputRpcError: RpcError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class ResourceNotFoundRpcError: RpcError, @unchecked Sendable {
     static let code = -32001
 
@@ -140,6 +152,7 @@ public class ResourceNotFoundRpcError: RpcError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class ResourceUnavailableRpcError: RpcError, @unchecked Sendable {
     static let code = -32002
 
@@ -152,6 +165,7 @@ public class ResourceUnavailableRpcError: RpcError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class TransactionRejectedRpcError: RpcError, @unchecked Sendable {
     static let code = -32003
 
@@ -164,18 +178,24 @@ public class TransactionRejectedRpcError: RpcError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class MethodNotSupportedRpcError: RpcError, @unchecked Sendable {
     static let code = -32004
 
     init(cause: Error, method: String? = nil) {
+        let shortMessage = method.map {
+            "Method \"\($0)\" is not implemented."
+        } ?? "Method is not implemented."
+
         super.init(cause: cause, options: RpcErrorOptions(
             code: MethodNotSupportedRpcError.code,
             name: "MethodNotSupportedRpcError",
-            shortMessage: "Method\(method != nil ? " \"\(method!)\"" : "") is not implemented."
+            shortMessage: shortMessage
         ))
     }
 }
 
+@_documentation(visibility: private)
 public class LimitExceededRpcError: RpcError, @unchecked Sendable {
     static let code = -32005
 
@@ -188,6 +208,7 @@ public class LimitExceededRpcError: RpcError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class JsonRpcVersionUnsupportedError: RpcError, @unchecked Sendable {
     static let code = -32006
 
@@ -200,6 +221,7 @@ public class JsonRpcVersionUnsupportedError: RpcError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class UnknownRpcError: ProviderRpcError, @unchecked Sendable {
     init(cause: Error) {
         super.init(cause: cause, options: RpcErrorOptions(
@@ -209,8 +231,10 @@ public class UnknownRpcError: ProviderRpcError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class ProviderRpcError: RpcError , @unchecked Sendable{}
 
+@_documentation(visibility: private)
 public class UserRejectedRequestError: ProviderRpcError, @unchecked Sendable {
     static let code = 4001
 
@@ -223,6 +247,7 @@ public class UserRejectedRequestError: ProviderRpcError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class UnauthorizedProviderError: ProviderRpcError, @unchecked Sendable {
     static let code = 4100
 
@@ -235,18 +260,24 @@ public class UnauthorizedProviderError: ProviderRpcError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class UnsupportedProviderMethodError: ProviderRpcError, @unchecked Sendable {
     static let code = 4200
 
     init(cause: Error, method: String? = nil) {
+        let shortMessage = method.map {
+            "The Provider does not support the requested method \"\($0)\"."
+        } ?? "The Provider does not support the requested method."
+        
         super.init(cause: cause, options: RpcErrorOptions(
             code: UnsupportedProviderMethodError.code,
             name: "UnsupportedProviderMethodError",
-            shortMessage: "The Provider does not support the requested method\(method != nil ? " \"\(method!)\"" : "")."
+            shortMessage: shortMessage
         ))
     }
 }
 
+@_documentation(visibility: private)
 public class ProviderDisconnectedError: ProviderRpcError, @unchecked Sendable {
     static let code = 4900
 
@@ -259,6 +290,7 @@ public class ProviderDisconnectedError: ProviderRpcError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class ChainDisconnectedError: ProviderRpcError, @unchecked Sendable {
     static let code = 4901
 
@@ -271,6 +303,7 @@ public class ChainDisconnectedError: ProviderRpcError, @unchecked Sendable {
     }
 }
 
+@_documentation(visibility: private)
 public class SwitchChainError: ProviderRpcError, @unchecked Sendable {
     static let code = 4902
 

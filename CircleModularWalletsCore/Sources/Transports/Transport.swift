@@ -18,7 +18,16 @@
 
 import Foundation
 
+/// The intermediary layer that is responsible for executing outgoing requests (ie. RPC requests).
 public protocol Transport {
-    
+
+    /// Sends an RPC request and returns the response.
+    ///
+    /// - Parameters:
+    ///   - rpcRequest: The RPC request to be sent.
+    ///
+    /// - Returns: The response from the RPC request.
+    ///
+    /// - Throws: An error if the request fails.
     func request<P: Encodable, R: Decodable>(_ rpcRequest: RpcRequest<P>) async throws -> RpcResponse<R>
 }

@@ -20,27 +20,67 @@ import Foundation
 import BigInt
 import Web3Core
 
+/// Data structure representing a block.
 public struct Block {
 
-    public var number: BigUInt // MARK: This is optional in web3js, but required in Ethereum JSON-RPC
-    public var hash: Data // MARK: This is optional in web3js, but required in Ethereum JSON-RPC
+    /// Block number or `nil` if pending. (Optional in web3js, required in Ethereum JSON-RPC)
+    public var number: BigUInt
+
+    /// Block hash or `nil` if pending. (Optional in web3js, required in Ethereum JSON-RPC)
+    public var hash: Data
+
+    /// Parent block hash.
     public var parentHash: Data
-    public var nonce: Data? // MARK: This is optional in web3js but required in Ethereum JSON-RPC
+
+    /// Proof-of-work hash or `nil` if pending. (Optional in web3js, required in Ethereum JSON-RPC)
+    public var nonce: Data?
+
+    /// SHA3 of the uncles data in this block.
     public var sha3Uncles: Data
-    public var logsBloom: EthereumBloomFilter? // MARK: This is optional in web3js but required in Ethereum JSON-RPC
+
+    /// Logs bloom filter or `nil` if pending. (Optional in web3js, required in Ethereum JSON-RPC)
+    public var logsBloom: EthereumBloomFilter?
+
+    /// Root of this block’s transaction trie.
     public var transactionsRoot: Data
+
+    /// Root of this block’s final state trie.
     public var stateRoot: Data
+
+    /// Root of this block’s receipts trie.
     public var receiptsRoot: Data
-    public var miner: EthereumAddress? // MARK: This is NOT optional in web3js
+
+    /// Address that received this block’s mining rewards. (Not optional in web3js)
+    public var miner: EthereumAddress?
+
+    /// Difficulty for this block.
     public var difficulty: BigUInt
+
+    /// Total difficulty of the chain until this block.
     public var totalDifficulty: BigUInt?
+
+    /// "Extra data" field of this block.
     public var extraData: Data
+
+    /// Size of this block in bytes.
     public var size: BigUInt
+
+    /// Maximum gas allowed in this block.
     public var gasLimit: BigUInt
+
+    /// Total used gas by all transactions in this block.
     public var gasUsed: BigUInt
+
+    /// Base fee per gas.
     public var baseFeePerGas: BigUInt?
+
+    /// Unix timestamp of when this block was collated.
     public var timestamp: Date
+
+    /// List of transaction objects or hashes.
     public var transactions: [TransactionInBlock]
+
+    /// List of uncle hashes.
     public var uncles: [Data]
 
     enum CodingKeys: String, CodingKey {
