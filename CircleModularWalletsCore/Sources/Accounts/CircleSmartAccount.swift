@@ -159,8 +159,8 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
 
     public func sign(hex: String) async throws -> String {
         let digest = Utils.toSha3Data(message: hex)
-        let hash = getReplaySafeHash(
-            chainId: client.chain.chainId,
+        let hash = try await Utils.getReplaySafeMessageHash(
+            transport: client.transport,
             account: getAddress(),
             hash: HexUtils.dataToHex(digest)
         )
@@ -189,8 +189,8 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
         let messageHashHex = HexUtils.dataToHex(messageHash)
 
         let digest = Utils.toSha3Data(message: messageHashHex)
-        let hash = getReplaySafeHash(
-            chainId: client.chain.chainId,
+        let hash = try await Utils.getReplaySafeMessageHash(
+            transport: client.transport,
             account: getAddress(),
             hash: HexUtils.dataToHex(digest)
         )
@@ -221,8 +221,8 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
         let typedDataHashHex = HexUtils.dataToHex(typedDataHash)
 
         let digest = Utils.toSha3Data(message: typedDataHashHex)
-        let hash = getReplaySafeHash(
-            chainId: client.chain.chainId,
+        let hash = try await Utils.getReplaySafeMessageHash(
+            transport: client.transport,
             account: getAddress(),
             hash: HexUtils.dataToHex(digest)
         )
@@ -323,62 +323,6 @@ extension CircleSmartAccount: PublicRpcApi {
     }
 
     /// Remove the private access control for unit testing
-    func getReplaySafeHash(
-        chainId: Int,
-        account: String,
-        hash: String,
-        verifyingContract: String = CIRCLE_WEIGHTED_WEB_AUTHN_MULTISIG_PLUGIN
-    ) -> String {
-        // Get the prefix
-        let messagePrefix = "0x1901"
-        let prefix = HexUtils.hexToData(hex: messagePrefix) ?? .init()
-
-        // Get the domainSeparatorHash
-        let domainSeparatorTypeHash =
-        Utils.toSha3Data(message: "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract,bytes32 salt)")
-
-        var types: [ABI.Element.ParameterType] = [
-            .bytes(length: 32),
-            .bytes(length: 32),
-            .uint(bits: 256),
-            .address,
-            .bytes(length: 32)
-        ]
-        var values: [Any] = [
-            domainSeparatorTypeHash,
-            Self.getModuleIdHash(),
-            chainId,
-            verifyingContract,
-            Utils.pad(data: Utils.toData(value: account), isRight: true)
-        ]
-
-        var domainSeparator = Data()
-        if let encoded = ABIEncoder.encode(types: types, values: values) {
-            domainSeparator = encoded
-        }
-        let domainSeparatorHash = domainSeparator.sha3(.keccak256)
-
-        // Get the structHash
-        guard let bytes = try? HexUtils.hexToBytes(hex: hash) else {
-            logger.passkeyAccount.error("Failed to decode the hash of getReplaySafeHash into UInt8 array.")
-            return ""
-        }
-
-        types = [.bytes(length: 32), .bytes(length: 32)]
-        values = [Self.getModuleTypeHash(), bytes]
-        var structData = Data()
-        if let encoded = ABIEncoder.encode(types: types, values: values) {
-            structData = encoded
-        }
-        let structHash = structData.sha3(.keccak256)
-
-        // Concat the prefix, domainSeparatorHash and domainSeparatorHash
-        let replaySafeHash = (prefix + domainSeparatorHash + structHash).sha3(.keccak256)
-
-        return HexUtils.dataToHex(replaySafeHash)
-    }
-
-    /// Remove the private access control for unit testing
     func encodePackedForSignature(
         signResult: SignResult,
         publicKey: String,
@@ -426,16 +370,6 @@ extension CircleSmartAccount: PublicRpcApi {
         )
 
         return encoded
-    }
-
-    static func getModuleIdHash() -> Data {
-        let message = Utils.encodePacked(["Weighted Multisig Webauthn Plugin", "1.0.0"])
-
-        return Utils.toSha3Data(message: message)
-    }
-
-    static func getModuleTypeHash() -> Data {
-        return Utils.toSha3Data(message: "CircleWeightedWebauthnMultisigMessage(bytes32 hash)")
     }
 
     static func encodeParametersWebAuthnSigDynamicPart(

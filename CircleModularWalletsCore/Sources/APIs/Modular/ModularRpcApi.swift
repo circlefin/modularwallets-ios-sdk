@@ -21,6 +21,11 @@ import Foundation
 protocol ModularRpcApi {
 
     func getAddress(transport: Transport, req: GetAddressReq) async throws -> ModularWallet
+    func createAddressMapping(
+        transport: Transport,
+        walletAddress: String,
+        owners: [AddressMappingOwner]
+    ) async throws -> [CreateAddressMappingResult]
 }
 
 extension ModularRpcApi {
@@ -28,6 +33,45 @@ extension ModularRpcApi {
     func getAddress(transport: Transport, req: GetAddressReq) async throws -> ModularWallet {
         let req = RpcRequest(method: "circle_getAddress", params: [req])
         let response = try await transport.request(req) as RpcResponse<ModularWallet>
+        return response.result
+    }
+
+    func createAddressMapping(
+        transport: Transport,
+        walletAddress: String,
+        owners: [AddressMappingOwner]
+    ) async throws -> [CreateAddressMappingResult] {
+        if !Utils.isAddress(walletAddress) {
+            throw BaseError(shortMessage: "walletAddress is invalid")
+        }
+
+        if owners.isEmpty {
+            throw BaseError(shortMessage: "At least one owner must be provided")
+        }
+
+        for (index, owner) in owners.enumerated() {
+            switch owner {
+            case let eoaOwner as EoaAddressMappingOwner:
+                if !Utils.isAddress(eoaOwner.identifier.address) {
+                    throw BaseError(shortMessage: "EOA owner at index \(index) has an invalid address")
+                }
+
+            case let webAuthnOwner as WebAuthnAddressMappingOwner:
+                if webAuthnOwner.identifier.publicKeyX.isEmpty || webAuthnOwner.identifier.publicKeyY.isEmpty {
+                    throw BaseError(shortMessage: "Webauthn owner at index \(index) must have publicKeyX and publicKeyY")
+                }
+
+            default:
+                throw BaseError(shortMessage: "Owner at index \(index) has an invalid type")
+            }
+        }
+
+        let req = RpcRequest(
+            method: "circle_createAddressMapping",
+            params: [CreateAddressMappingReq(walletAddress: walletAddress, owners: owners)]
+        )
+
+        let response = try await transport.request(req) as RpcResponse<[CreateAddressMappingResult]>
         return response.result
     }
 }
