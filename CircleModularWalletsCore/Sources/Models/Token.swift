@@ -43,6 +43,43 @@ public enum ArbitrumToken: String {
     }
 }
 
+public enum BaseToken: String {
+    case USDC
+
+    public var chainId: Int {
+        return Base.chainId
+    }
+
+    public var name: String {
+        return "Base_\(self.rawValue)"
+    }
+}
+
+public enum OptimismToken: String {
+    case USDC
+    case OP
+
+    public var chainId: Int {
+        return Optimism.chainId
+    }
+
+    public var name: String {
+        return "Optimism_\(self.rawValue)"
+    }
+}
+
+public enum UnichainToken: String {
+    case USDC
+
+    public var chainId: Int {
+        return Unichain.chainId
+    }
+
+    public var name: String {
+        return "Unichain_\(self.rawValue)"
+    }
+}
+
 public enum PolygonAmoyToken: String {
     case USDC
     
@@ -64,5 +101,41 @@ public enum ArbitrumSepoliaToken: String {
     
     public var name: String {
         return "ArbitrumSepolia_\(self.rawValue)"
+    }
+}
+
+public enum BaseSepoliaToken: String {
+    case USDC
+
+    public var chainId: Int {
+        return BaseSepolia.chainId
+    }
+
+    public var name: String {
+        return "BaseSepolia_\(self.rawValue)"
+    }
+}
+
+public enum OptimismSepoliaToken: String {
+    case USDC
+
+    public var chainId: Int {
+        return OptimismSepolia.chainId
+    }
+
+    public var name: String {
+        return "OptimismSepolia_\(self.rawValue)"
+    }
+}
+
+public enum UnichainSepoliaToken: String {
+    case USDC
+
+    public var chainId: Int {
+        return UnichainSepolia.chainId
+    }
+
+    public var name: String {
+        return "UnichainSepolia_\(self.rawValue)"
     }
 }

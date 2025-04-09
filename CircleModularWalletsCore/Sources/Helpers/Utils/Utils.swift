@@ -419,6 +419,10 @@ extension Utils {
         return encoded
     }
 
+    static func isAddress(_ to: String) -> Bool {
+        return to.range(of: #"^0x[a-fA-F0-9]{40}$"#, options: .regularExpression) != nil
+    }
+
     static func hashMessage(hex: String) -> String {
         var bytes = [UInt8]()
 
@@ -813,8 +817,7 @@ extension Utils {
         transport: Transport,
         message: String,
         signature: String,
-        from: String,
-        to: String = CIRCLE_WEIGHTED_WEB_AUTHN_MULTISIG_PLUGIN
+        walletAddress: String
     ) async -> Bool {
         let digest = toSha3Data(message: message)
         
@@ -833,17 +836,16 @@ extension Utils {
             return false
         }
 
-        guard let fromAddress = EthereumAddress(from), let toAddress = EthereumAddress(to) else {
-            logger.utils.notice("Invalid 'from' or 'to' address")
+        guard let address = EthereumAddress(walletAddress) else {
+            logger.utils.notice("Invalid walletAddress (\(walletAddress))")
             return false
         }
 
-        var transaction = CodableTransaction(to: toAddress, data: data)
-        transaction.from = fromAddress
+        let transaction = CodableTransaction(to: address, data: data)
         
         guard let callResult = try? await Utils().ethCall(transport: transport,
                                                           transaction: transaction) else {
-            logger.utils.notice("Failed to execute eth_call request")
+            logger.utils.notice("Failed to execute eth_call request for isValidSignature")
             return false
         }
 
@@ -859,6 +861,58 @@ extension Utils {
         }
 
         return EIP1271_VALID_SIGNATURE == magicValue.bytes
+    }
+
+    static func getReplaySafeMessageHash(
+        transport: Transport,
+        account: String,
+        hash: String
+    ) async throws -> String {
+        guard let hashData = HexUtils.hexToData(hex: hash) else {
+            logger.utils.notice("Invalid hash: \(hash)")
+            throw BaseError(shortMessage: "Invalid hash: \(hash)")
+        }
+
+        let functionName = "getReplaySafeMessageHash"
+        let input1 = InOut(name: "address", type: .address)
+        let input2 = InOut(name: "hash", type: .bytes(length: 32))
+        let output = InOut(name: "", type: .bytes(length: 32))
+        let function = ABI.Element.Function(name: functionName,
+                                            inputs: [input1, input2],
+                                            outputs: [output],
+                                            constant: false,
+                                            payable: false)
+
+        guard let toAddress = EthereumAddress(account) else {
+            logger.utils.notice("Invalid address: \(account)")
+            throw BaseError(shortMessage: "Invalid address: \(account)")
+        }
+
+        let params: [Any] = [account, hashData]
+        guard let data = function.encodeParameters(params) else {
+            logger.utils.notice("getReplaySafeMessageHash function encodeParameters failure (\(params))")
+            throw BaseError(shortMessage: "getReplaySafeMessageHash function encodeParameters failure (\(params))")
+        }
+        let transaction = CodableTransaction(to: toAddress, data: data)
+
+        guard let callResult = try? await Utils().ethCall(transport: transport,
+                                                          transaction: transaction) else {
+            logger.utils.notice("Failed to execute eth_call request for getReplaySafeMessageHash")
+            throw BaseError(shortMessage: "Failed to execute eth_call request for getReplaySafeMessageHash")
+        }
+
+        guard let callResultData = HexUtils.hexToData(hex: callResult),
+              let decoded = try? function.decodeReturnData(callResultData) else {
+            logger.utils.notice("getReplaySafeMessageHash function decodeReturnData failure")
+            throw BaseError(shortMessage: "getReplaySafeMessageHash function decodeReturnData failure")
+        }
+
+        guard let result = decoded["0"] as? Data else {
+            logger.utils.notice("The data type returned by eth_call request is incorrect")
+            throw BaseError(shortMessage: "The data type returned by eth_call request is incorrect")
+        }
+
+        return HexUtils.dataToHex(result)
     }
 
     static func getCurrentDateTime() -> String {

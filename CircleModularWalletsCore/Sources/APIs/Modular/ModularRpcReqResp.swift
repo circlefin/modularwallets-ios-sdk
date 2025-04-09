@@ -97,3 +97,8 @@ struct ScaConfiguration: Codable {
 struct Metadata: Codable {
     let name: String?
 }
+
+struct CreateAddressMappingReq: Encodable {
+    let walletAddress: String
+    let owners: [AddressMappingOwner]
+}

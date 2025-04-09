@@ -261,4 +261,27 @@ public class BundlerClient: Client, BundlerRpcApi, PublicRpcApi {
                                   includeTransactions: includeTransactions,
                                   blockNumber: blockNumber)
     }
+    
+    /// Creates an address mapping for recovery.
+    ///
+    /// - Note: This feature is only available in Circle Buidl Wallets service.
+    ///
+    /// - Parameters:
+    ///   - walletAddress: The Circle smart wallet address.
+    ///   - owners: The owners of the wallet.
+    /// - Returns: The response from adding an address mapping.
+    public func createAddressMapping(
+        walletAddress: String,
+        owners: [AddressMappingOwner]
+    ) async throws -> [CreateAddressMappingResult] {
+        guard let buidlTransport = transport as? ModularTransport else {
+            throw BaseError(shortMessage: "The property transport is not the ModularTransport")
+        }
+
+        return try await buidlTransport.createAddressMapping(
+            transport: buidlTransport,
+            walletAddress: walletAddress,
+            owners: owners
+        )
+    }
 }
