@@ -815,12 +815,10 @@ extension Utils {
 
     static func isValidSignature(
         transport: Transport,
-        message: String,
+        digest: String,
         signature: String,
         walletAddress: String
     ) async -> Bool {
-        let digest = toSha3Data(message: message)
-        
         let functionName = "isValidSignature"
         let input1 = InOut(name: "digest", type: .bytes(length: 32))
         let input2 = InOut(name: "signature", type: .dynamicBytes)

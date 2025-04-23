@@ -44,20 +44,20 @@ public struct WebAuthnAccount: Account {
         return credential.publicKey
     }
 
-    /// Signs the given hex data.
+    /// Signs a given hash.
     ///
     /// - Parameters:
-    ///   - hex: The hex data to sign.
+    ///   - messageHash: The hash to sign.
     ///
     /// - Returns: The result of the signing operation.
     /// - Throws: A `BaseError` if the credential request fails.
-    public func sign(hex: String) async throws -> SignResult {
+    public func sign(messageHash: String) async throws -> SignResult {
         do {
             /// Step 1. Get RequestOptions
             let option = try WebAuthnUtils.getRequestOption(
                 rpId: credential.rpId,
                 allowCredentialId: credential.id,
-                hex: hex)
+                hex: messageHash)
 
             /// Step 2. Get credential
             let credential = try await WebAuthnHandler.shared.signInWith(option: option)
@@ -95,7 +95,7 @@ public struct WebAuthnAccount: Account {
         }
     }
 
-    /// Signs the given message.
+    /// Signs a given message.
     ///
     /// - Parameters:
     ///   - message: The message to sign.
@@ -108,10 +108,10 @@ public struct WebAuthnAccount: Account {
         }
 
         let hex = HexUtils.dataToHex(hash)
-        return try await sign(hex: hex)
+        return try await sign(messageHash: hex)
     }
 
-    /// Signs the given typed data.
+    /// Signs a given typed data.
     ///
     /// - Parameters:
     ///   - typedData: The typed data to sign.
@@ -125,7 +125,7 @@ public struct WebAuthnAccount: Account {
         }
 
         let hex = HexUtils.dataToHex(hash)
-        return try await sign(hex: hex)
+        return try await sign(messageHash: hex)
     }
 }
 

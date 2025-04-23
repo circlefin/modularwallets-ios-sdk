@@ -28,15 +28,15 @@ public protocol Account {
     /// - Returns: The address of the account.
     func getAddress() -> String
 
-    /// Signs the given hex data.
+    /// Signs a given hash.
     ///
     /// - Parameters:
-    ///   - hex: The hex data to sign.
+    ///   - messageHash: The hash to sign.
     ///
     /// - Returns: The signed data of type `T`.
-    func sign(hex: String) async throws -> T
+    func sign(messageHash: String) async throws -> T
 
-    /// Signs the given message.
+    /// Signs a given message.
     ///
     /// - Parameters:
     ///   - message: The message to sign.
@@ -44,7 +44,7 @@ public protocol Account {
     /// - Returns: The signed message of type `T`.
     func signMessage(message: String) async throws -> T
 
-    /// Signs the given typed data.
+    /// Signs a given typed data.
     ///
     /// - Parameters:
     ///   - typedData: The typed data to sign.

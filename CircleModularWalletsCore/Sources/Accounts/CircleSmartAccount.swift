@@ -105,14 +105,29 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
         }
     }
 
+    /// Returns the address of the account.
+    ///
+    /// - Returns: The address of the smart account.
     public func getAddress() -> String {
         return wallet.address ?? ""
     }
 
+    /// Encodes the given call data arguments.
+    ///
+    /// - Parameters:
+    ///   - args: The call data arguments to encode.
+    ///
+    /// - Returns: The encoded call data.
     public func encodeCalls(args: [EncodeCallDataArg]) -> String? {
         return Utils.encodeCallData(args: args)
     }
 
+    /// Encodes the given call data arguments.
+    ///
+    /// - Parameters:
+    ///   - args: The call data arguments to encode.
+    ///
+    /// - Returns: The encoded call data.
     public func getFactoryArgs() async throws -> (String, String)? {
         if await isDeployed() {
             return nil
@@ -125,6 +140,12 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
         return Utils.parseFactoryAddressAndData(initCode: initCode)
     }
 
+    /// Returns the nonce for the Circle smart account.
+    ///
+    /// - Parameters:
+    ///   - key: An optional key to retrieve the nonce for.
+    ///
+    /// - Returns: The nonce of the Circle smart account.
     public func getNonce(key: BigInt?) async throws -> BigInt {
         let _key: BigInt
         if let key = key {
@@ -153,20 +174,31 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
         return nonce
     }
 
+    /// Returns the stub signature for the given user operation.
+    ///
+    /// - Parameters:
+    ///   - userOp: The user operation to retrieve the stub signature for. The type `T` must be a subclass of `UserOperation`.
+    ///
+    /// - Returns: The stub signature.
     public func getStubSignature<T: UserOperation>(userOp: T) -> String {
         return STUB_SIGNATURE
     }
 
-    public func sign(hex: String) async throws -> String {
-        let digest = Utils.toSha3Data(message: hex)
-        let hash = try await Utils.getReplaySafeMessageHash(
+    /// Signs a hash via the Smart Account's owner.
+    ///
+    /// - Parameters:
+    ///   - messageHash: The hash to sign.
+    ///
+    /// - Returns: The signed data.
+    public func sign(messageHash: String) async throws -> String {
+        let replaySafeMessageHash = try await Utils.getReplaySafeMessageHash(
             transport: client.transport,
             account: getAddress(),
-            hash: HexUtils.dataToHex(digest)
+            hash: messageHash
         )
 
         do {
-            let signResult = try await owner.sign(hex: hash)
+            let signResult = try await owner.sign(messageHash: replaySafeMessageHash)
             let signature = encodePackedForSignature(
                 signResult: signResult,
                 publicKey: owner.getAddress(),
@@ -176,27 +208,31 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
         } catch let error as BaseError {
             throw error
         } catch {
-            throw BaseError(shortMessage: "CircleSmartAccount.owner.sign(hex: \"\(hash)\") failure",
+            throw BaseError(shortMessage: "CircleSmartAccount.owner.sign(hash: \"\(replaySafeMessageHash)\") failure",
                             args: .init(cause: error, name: String(describing: error)))
         }
     }
 
+    /// Signs a [EIP-191 Personal Sign message](https://eips.ethereum.org/EIPS/eip-191).
+    ///
+    /// - Parameters:
+    ///   - message: The message to sign.
+    ///
+    /// - Returns: The signed message.
     public func signMessage(message: String) async throws -> String {
-        guard let messageHash = Utilities.hashPersonalMessage(Data(message.utf8)) else {
+        guard let hashedMessageData = Utilities.hashPersonalMessage(Data(message.utf8)) else {
             throw BaseError(shortMessage: "Failed to hash message: \"\(message)\"")
         }
 
-        let messageHashHex = HexUtils.dataToHex(messageHash)
-
-        let digest = Utils.toSha3Data(message: messageHashHex)
-        let hash = try await Utils.getReplaySafeMessageHash(
+        let hashedMessage = HexUtils.dataToHex(hashedMessageData)
+        let replaySafeMessageHash = try await Utils.getReplaySafeMessageHash(
             transport: client.transport,
             account: getAddress(),
-            hash: HexUtils.dataToHex(digest)
+            hash: hashedMessage
         )
 
         do {
-            let signResult = try await owner.sign(hex: hash)
+            let signResult = try await owner.sign(messageHash: replaySafeMessageHash)
             let signature = encodePackedForSignature(
                 signResult: signResult,
                 publicKey: owner.getAddress(),
@@ -206,29 +242,33 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
         } catch let error as BaseError {
             throw error
         } catch {
-            throw BaseError(shortMessage: "CircleSmartAccount.owner.sign(hex: \"\(hash)\") failure",
+            throw BaseError(shortMessage: "CircleSmartAccount.owner.sign(hash: \"\(replaySafeMessageHash)\") failure",
                             args: .init(cause: error, name: String(describing: error)))
         }
     }
 
+    /// Signs a given typed data.
+    ///
+    /// - Parameters:
+    ///   - typedData: The typed data to sign.
+    ///
+    /// - Returns: The signed typed data.
     public func signTypedData(typedData: String) async throws -> String {
         guard let typedData = try? EIP712Parser.parse(typedData),
-              let typedDataHash = try? typedData.signHash() else {
+              let hashedTypedDataData = try? typedData.signHash() else {
             logger.passkeyAccount.error("typedData signHash failure")
             throw BaseError(shortMessage: "Failed to hash TypedData: \"\(typedData)\"")
         }
 
-        let typedDataHashHex = HexUtils.dataToHex(typedDataHash)
-
-        let digest = Utils.toSha3Data(message: typedDataHashHex)
-        let hash = try await Utils.getReplaySafeMessageHash(
+        let hashedTypedData = HexUtils.dataToHex(hashedTypedDataData)
+        let replaySafeMessageHash = try await Utils.getReplaySafeMessageHash(
             transport: client.transport,
             account: getAddress(),
-            hash: HexUtils.dataToHex(digest)
+            hash: hashedTypedData
         )
 
         do {
-            let signResult = try await owner.sign(hex: hash)
+            let signResult = try await owner.sign(messageHash: replaySafeMessageHash)
             let signature = encodePackedForSignature(
                 signResult: signResult,
                 publicKey: owner.getAddress(),
@@ -238,11 +278,18 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
         } catch let error as BaseError {
             throw error
         } catch {
-            throw BaseError(shortMessage: "CircleSmartAccount.owner.sign(hex: \"\(hash)\") failure",
+            throw BaseError(shortMessage: "CircleSmartAccount.owner.sign(hash: \"\(replaySafeMessageHash)\") failure",
                             args: .init(cause: error, name: String(describing: error)))
         }
     }
 
+    /// Signs a given user operation.
+    ///
+    /// - Parameters:
+    ///   - chainId: The chain ID for the user operation. Default is the chain ID of the client.
+    ///   - userOp: The user operation to sign.
+    ///
+    /// - Returns: The signed user operation.
     public func signUserOperation(chainId: Int, userOp: UserOperationV07) async throws -> String {
         userOp.sender = getAddress()
         let userOpHash = try Utils.getUserOperationHash(
@@ -254,7 +301,7 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
         let hash = Utils.hashMessage(hex: userOpHash)
 
         do {
-            let signResult = try await owner.sign(hex: hash)
+            let signResult = try await owner.sign(messageHash: hash)
             let signature = encodePackedForSignature(
                 signResult: signResult,
                 publicKey: owner.getAddress(),
@@ -269,6 +316,9 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
         }
     }
 
+    /// Returns the initialization code for the Circle smart account.
+    ///
+    /// - Returns: The initialization code.
     public func getInitCode() -> String? {
         return wallet.getInitCode()
     }
