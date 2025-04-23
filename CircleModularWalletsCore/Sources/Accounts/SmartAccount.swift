@@ -68,15 +68,15 @@ public protocol SmartAccount {
     /// - Returns: The stub signature.
     func getStubSignature<T: UserOperation>(userOp: T) -> String
 
-    /// Signs the given hex data.
+    /// Signs a hash via the Smart Account's owner.
     ///
     /// - Parameters:
-    ///   - hex: The hex data to sign.
+    ///   - messageHash: The hash to sign.
     ///
     /// - Returns: The signed data.
-    func sign(hex: String) async throws -> String
+    func sign(messageHash: String) async throws -> String
 
-    /// Signs the given message.
+    /// Signs a [EIP-191 Personal Sign message](https://eips.ethereum.org/EIPS/eip-191).
     ///
     /// - Parameters:
     ///   - message: The message to sign.
@@ -84,7 +84,7 @@ public protocol SmartAccount {
     /// - Returns: The signed message.
     func signMessage(message: String) async throws -> String
 
-    /// Signs the given typed data.
+    /// Signs a given typed data.
     ///
     /// - Parameters:
     ///   - typedData: The typed data to sign.
@@ -92,7 +92,7 @@ public protocol SmartAccount {
     /// - Returns: The signed typed data.
     func signTypedData(typedData: String) async throws -> String
 
-    /// Signs the given user operation.
+    /// Signs a given user operation.
     ///
     /// - Parameters:
     ///   - chainId: The chain ID for the user operation. Default is the chain ID of the client.
