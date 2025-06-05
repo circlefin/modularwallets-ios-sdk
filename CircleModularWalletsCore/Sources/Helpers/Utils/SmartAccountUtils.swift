@@ -17,23 +17,33 @@
 //
 
 import Foundation
+import BigInt
 
 struct SmartAccountUtils {
 
-    static func getMinimumVerificationGasLimit(deployed: Bool,
-                                               chainId: Int) -> Int {
-        switch chainId {
-        case Sepolia.chainId:
-            return deployed ?
-            SEPOLIA_MINIMUM_VERIFICATION_GAS_LIMIT : SEPOLIA_MINIMUM_UNDEPLOY_VERIFICATION_GAS_LIMIT
+    static func getDefaultVerificationGasLimit(client: Client,
+                                               deployed: Bool) async -> BigInt? {
+        var verificationGasLimit: BigInt = deployed ?
+        BigInt(MINIMUM_VERIFICATION_GAS_LIMIT) : BigInt(MINIMUM_UNDEPLOY_VERIFICATION_GAS_LIMIT)
 
-        case Mainnet.chainId:
-            return deployed ?
-            MAINNET_MINIMUM_VERIFICATION_GAS_LIMIT : MAINNET_MINIMUM_UNDEPLOY_VERIFICATION_GAS_LIMIT
-        default:
-            return deployed ?
-            MINIMUM_VERIFICATION_GAS_LIMIT : MINIMUM_UNDEPLOY_VERIFICATION_GAS_LIMIT
+        guard let bundlerClient = client as? BundlerClient,
+              client.transport is ModularTransport else {
+            logger.transport.error("Client is not BundlerClient / Client transport is not ModularTransport")
+            return nil
         }
+
+        guard let result = try? await bundlerClient.getUserOperationGasPrice() else {
+            logger.bundler.error("Failed to get gas prices from RPC, falling back to hardcoded values: \(verificationGasLimit)")
+            return verificationGasLimit
+        }
+
+        if deployed, let deployedVerificationGasLimit = result.deployed {
+            verificationGasLimit = deployedVerificationGasLimit
+        } else if !deployed, let notDeployedVerificationGasLimit = result.notDeployed {
+            verificationGasLimit = notDeployedVerificationGasLimit
+        }
+
+        return verificationGasLimit
     }
 
 }

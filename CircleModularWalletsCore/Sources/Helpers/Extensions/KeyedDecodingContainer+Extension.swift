@@ -21,9 +21,11 @@ import BigInt
 
 extension KeyedDecodingContainer {
 
-    func decodeToBigInt(forKey key: KeyedDecodingContainer<K>.Key) throws -> BigInt? {
-        let hexString = try? self.decodeIfPresent(String.self, forKey: key)
-        return HexUtils.hexToBigInt(hex: hexString)
+    func decodeToBigInt(forKey key: KeyedDecodingContainer<K>.Key,
+                        isHex: Bool = true) throws -> BigInt? {
+        let string = try? self.decodeIfPresent(String.self, forKey: key)
+        return isHex ?
+        HexUtils.hexToBigInt(hex: string) : (string != nil ? BigInt(string ?? "") : nil)
     }
 
 //    func decodeBytesFromURLEncodedBase64(forKey key: KeyedDecodingContainer.Key) throws -> [UInt8] {
