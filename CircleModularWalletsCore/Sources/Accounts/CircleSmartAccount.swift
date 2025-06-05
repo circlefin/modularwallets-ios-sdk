@@ -65,7 +65,7 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
     }
 
     convenience init(client: Client, owner: A, version: String, name: String?) async throws {
-        guard let buidlTransport = client.transport as? ModularTransport else {
+        guard let bundlerTransport = client.transport as? ModularTransport else {
             throw BaseError(shortMessage: "The property client.transport is not the ModularTransport")
         }
         guard let webAuthnAccount = owner as? WebAuthnAccount else {
@@ -73,7 +73,7 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
         }
 
         let wallet = try await Self.createWallet(
-            transport: buidlTransport,
+            transport: bundlerTransport,
             hexPublicKey: webAuthnAccount.credential.publicKey,
             version: version,
             name: name
@@ -85,20 +85,21 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
     /// Configuration for the user operation.
     public var userOperation: UserOperationConfiguration? {
         get async {
-            let minimumVerificationGasLimit = SmartAccountUtils.getMinimumVerificationGasLimit(
-                deployed: await self.isDeployed(),
-                chainId: client.chain.chainId
-            )
-
             let config = UserOperationConfiguration { userOperation in
-                let verificationGasLimit = BigInt(minimumVerificationGasLimit)
-                let maxGasLimit = max(verificationGasLimit, userOperation.verificationGasLimit ?? BigInt(0))
+                // Only call getDefaultVerificationGasLimit if verificationGasLimit is not provided
+                let verificationGasLimit = userOperation.verificationGasLimit != nil ?
+                userOperation.verificationGasLimit : await SmartAccountUtils.getDefaultVerificationGasLimit(
+                    client: self.client,
+                    deployed: await self.isDeployed()
+                )
 
-                return EstimateUserOperationGasResult(preVerificationGas: nil,
-                                                      verificationGasLimit: maxGasLimit,
-                                                      callGasLimit: nil,
-                                                      paymasterVerificationGasLimit: nil,
-                                                      paymasterPostOpGasLimit: nil)
+                return EstimateUserOperationGasResult(
+                    preVerificationGas: nil,
+                    verificationGasLimit: verificationGasLimit,
+                    callGasLimit: nil,
+                    paymasterVerificationGasLimit: nil,
+                    paymasterPostOpGasLimit: nil
+                )
             }
 
             return config

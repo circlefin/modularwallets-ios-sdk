@@ -38,7 +38,11 @@ public struct EstimateUserOperationGasResult: Codable {
     /// The amount of gas to allocate for the paymaster post-operation code.
     public let paymasterPostOpGasLimit: BigInt?
 
-    init(preVerificationGas: BigInt?, verificationGasLimit: BigInt?, callGasLimit: BigInt?, paymasterVerificationGasLimit: BigInt?, paymasterPostOpGasLimit: BigInt?) {
+    init(preVerificationGas: BigInt?,
+         verificationGasLimit: BigInt?,
+         callGasLimit: BigInt?,
+         paymasterVerificationGasLimit: BigInt?,
+         paymasterPostOpGasLimit: BigInt?) {
         self.preVerificationGas = preVerificationGas
         self.verificationGasLimit = verificationGasLimit
         self.callGasLimit = callGasLimit

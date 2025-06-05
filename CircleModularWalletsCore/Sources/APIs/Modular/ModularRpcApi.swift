@@ -21,11 +21,16 @@ import Foundation
 protocol ModularRpcApi {
 
     func getAddress(transport: Transport, req: GetAddressReq) async throws -> ModularWallet
+
     func createAddressMapping(
         transport: Transport,
         walletAddress: String,
         owners: [AddressMappingOwner]
     ) async throws -> [CreateAddressMappingResult]
+
+    func getUserOperationGasPrice(
+        transport: Transport
+    ) async throws -> GetUserOperationGasPriceResult
 }
 
 extension ModularRpcApi {
@@ -72,6 +77,15 @@ extension ModularRpcApi {
         )
 
         let response = try await transport.request(req) as RpcResponse<[CreateAddressMappingResult]>
+        return response.result
+    }
+
+    func getUserOperationGasPrice(
+        transport: Transport
+    ) async throws -> GetUserOperationGasPriceResult {
+        let params = [AnyEncodable]()
+        let req = RpcRequest(method: "circle_getUserOperationGasPrice", params: params)
+        let response = try await transport.request(req) as RpcResponse<GetUserOperationGasPriceResult>
         return response.result
     }
 }

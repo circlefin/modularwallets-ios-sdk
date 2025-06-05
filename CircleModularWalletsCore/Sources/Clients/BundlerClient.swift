@@ -274,14 +274,27 @@ public class BundlerClient: Client, BundlerRpcApi, PublicRpcApi {
         walletAddress: String,
         owners: [AddressMappingOwner]
     ) async throws -> [CreateAddressMappingResult] {
-        guard let buidlTransport = transport as? ModularTransport else {
+        guard let bundlerTransport = transport as? ModularTransport else {
             throw BaseError(shortMessage: "The property transport is not the ModularTransport")
         }
 
-        return try await buidlTransport.createAddressMapping(
-            transport: buidlTransport,
+        return try await bundlerTransport.createAddressMapping(
+            transport: bundlerTransport,
             walletAddress: walletAddress,
             owners: owners
+        )
+    }
+    
+    /// Gets the gas price options for a user operation with optional SDK version parameter.
+    ///
+    /// - Returns: The gas price options with low, medium, high tiers and optional verificationGasLimit.
+    public func getUserOperationGasPrice() async throws -> GetUserOperationGasPriceResult {
+        guard let bundlerTransport = transport as? ModularTransport else {
+            throw BaseError(shortMessage: "The property transport is not the ModularTransport")
+        }
+
+        return try await bundlerTransport.getUserOperationGasPrice(
+            transport: bundlerTransport
         )
     }
 }

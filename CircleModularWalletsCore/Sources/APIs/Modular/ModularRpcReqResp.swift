@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import BigInt
 
 struct GetAddressReq: Encodable {
     let scaConfiguration: ScaConfiguration
@@ -101,4 +102,76 @@ struct Metadata: Codable {
 struct CreateAddressMappingReq: Encodable {
     let walletAddress: String
     let owners: [AddressMappingOwner]
+}
+
+/// Represents the response from the circle_getUserOperationGasPrice RPC method.
+/// This structure provides different gas price options (low, medium, high) for
+/// user operations along with verification gas limits for both
+/// deployed and non-deployed smart accounts.
+public struct GetUserOperationGasPriceResult: Decodable {
+
+    /// The low-priority, medium-priority and high-priority gas price option.
+    public let low, medium, high: GasPriceOption
+
+    /// The optional deployed verification gas.
+    public let deployed: BigInt?
+    
+    /// The optional non-deployed verification gas.
+    public let notDeployed: BigInt?
+
+    enum CodingKeys: CodingKey {
+        case low, medium, high
+        case verificationGasLimit
+        case deployed
+        case notDeployed
+    }
+
+    init(low: GasPriceOption,
+         medium: GasPriceOption,
+         high: GasPriceOption,
+         deployed: BigInt? = nil,
+         notDeployed: BigInt? = nil) {
+        self.low = low
+        self.medium = medium
+        self.high = high
+        self.deployed = deployed
+        self.notDeployed = notDeployed
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.low = try container.decode(GasPriceOption.self, forKey: .low)
+        self.medium = try container.decode(GasPriceOption.self, forKey: .medium)
+        self.high = try container.decode(GasPriceOption.self, forKey: .high)
+        self.deployed = try container.decodeToBigInt(forKey: .deployed, isHex: false)
+        self.notDeployed = try container.decodeToBigInt(forKey: .notDeployed, isHex: false)
+    }
+}
+
+/// Represents a gas price option.
+/// Contains the maximum fee per gas and maximum priority fee per gas for
+/// a specific priority level (low, medium, or high).
+public struct GasPriceOption: Decodable {
+
+    /// The maximum fee per gas.
+    public let maxFeePerGas: BigInt
+
+    /// The maximum priority fee per gas.
+    public let maxPriorityFeePerGas: BigInt
+
+    enum CodingKeys: CodingKey {
+        case maxFeePerGas
+        case maxPriorityFeePerGas
+    }
+
+    init(maxFeePerGas: BigInt, maxPriorityFeePerGas: BigInt) {
+        self.maxFeePerGas = maxFeePerGas
+        self.maxPriorityFeePerGas = maxPriorityFeePerGas
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.maxFeePerGas = try container.decodeToBigInt(forKey: .maxFeePerGas, isHex: false) ?? .zero
+        self.maxPriorityFeePerGas = try container.decodeToBigInt(forKey: .maxPriorityFeePerGas, isHex: false) ?? .zero
+    }
 }
