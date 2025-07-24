@@ -104,6 +104,10 @@ struct CreateAddressMappingReq: Encodable {
     let owners: [AddressMappingOwner]
 }
 
+struct GetAddressMappingReq: Encodable {
+    let owner: AddressMappingOwner
+}
+
 /// Represents the response from the circle_getUserOperationGasPrice RPC method.
 /// This structure provides different gas price options (low, medium, high) for
 /// user operations along with verification gas limits for both

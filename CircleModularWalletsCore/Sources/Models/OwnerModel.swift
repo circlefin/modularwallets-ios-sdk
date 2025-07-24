@@ -132,7 +132,7 @@ public class WebAuthnAddressMappingOwner: AddressMappingOwner {
 }
 
 /// The response from adding an address mapping.
-public struct CreateAddressMappingResult: Codable {
+public struct AddressMappingResult: Codable {
     
     /// The mapping ID.
     public let id: String

@@ -48,6 +48,7 @@ extension Logger {
     static let paymaster = Logger(subsystem: appIdentifier, category: "paymaster")
     static let utils = Logger(subsystem: appIdentifier, category: "utils")
     static let webAuthn = Logger(subsystem: appIdentifier, category: "WebAuthn")
+    static let localAccount = Logger(subsystem: appIdentifier, category: "localAccount")
     static let passkeyAccount = Logger(subsystem: appIdentifier, category: "passkeyAccount")
 }
 

@@ -26,7 +26,12 @@ protocol ModularRpcApi {
         transport: Transport,
         walletAddress: String,
         owners: [AddressMappingOwner]
-    ) async throws -> [CreateAddressMappingResult]
+    ) async throws -> [AddressMappingResult]
+
+    func getAddressMapping(
+        transport: Transport,
+        owner: AddressMappingOwner
+    ) async throws -> [AddressMappingResult]
 
     func getUserOperationGasPrice(
         transport: Transport
@@ -45,7 +50,7 @@ extension ModularRpcApi {
         transport: Transport,
         walletAddress: String,
         owners: [AddressMappingOwner]
-    ) async throws -> [CreateAddressMappingResult] {
+    ) async throws -> [AddressMappingResult] {
         if !Utils.isAddress(walletAddress) {
             throw BaseError(shortMessage: "walletAddress is invalid")
         }
@@ -76,7 +81,20 @@ extension ModularRpcApi {
             params: [CreateAddressMappingReq(walletAddress: walletAddress, owners: owners)]
         )
 
-        let response = try await transport.request(req) as RpcResponse<[CreateAddressMappingResult]>
+        let response = try await transport.request(req) as RpcResponse<[AddressMappingResult]>
+        return response.result
+    }
+
+    func getAddressMapping(
+        transport: Transport,
+        owner: AddressMappingOwner
+    ) async throws -> [AddressMappingResult] {
+        let req = RpcRequest(
+            method: "circle_getAddressMapping",
+            params: [GetAddressMappingReq(owner: owner)]
+        )
+
+        let response = try await transport.request(req) as RpcResponse<[AddressMappingResult]>
         return response.result
     }
 
