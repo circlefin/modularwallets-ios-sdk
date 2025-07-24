@@ -18,6 +18,17 @@
 
 import Foundation
 
+/**
+ * Error description string for a known backend RPC error.
+ *
+ * Refer to backend error definition:
+ * ExtStatusCodeConflictWalletIdentifierMapping
+ *
+ * This string is used to detect cases where the wallet-to-identifier mapping
+ * already exists and should be optionally ignored by clients.
+ */
+let ERROR_DESC_CONFLICT_WALLET_IDENTIFIER_MAPPING = "The wallet to identifier map already exists"
+
 struct ErrorUtils {
 
     static func getRpcError(cause: RpcRequestError) -> RpcError {
@@ -156,4 +167,14 @@ struct ErrorUtils {
         return UnknownBundlerError(cause: err)
     }
 
+    /// Determines whether the given error represents an already-existing wallet-to-identifier mapping.
+    /// Matches error detail string based on backend-defined message.
+    static func isMappedError(_ err: Error) -> Bool {
+        if let rpcError = err as? InvalidParamsRpcError {
+            if let details = rpcError.details {
+                return details.range(of: ERROR_DESC_CONFLICT_WALLET_IDENTIFIER_MAPPING, options: .caseInsensitive) != nil
+            }
+        }
+        return false
+    }
 }

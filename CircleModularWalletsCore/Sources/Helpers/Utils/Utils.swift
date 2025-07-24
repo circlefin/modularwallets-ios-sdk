@@ -767,6 +767,44 @@ extension Utils {
         return HexUtils.dataToHex(der)
     }
 
+    /// Helper function to serialize ECDSA signature data into a hex string.
+    /// Combines r, s, and v components into a single hex string.
+    ///
+    /// - Parameter signature: The ECDSA signature to serialize.
+    ///
+    /// - Returns: The serialized signature as a hex string.
+    static func serializeSignature(_ signature: Data) -> String {
+        // web3swift signature format is: [r (32 bytes)][s (32 bytes)][v (1 byte)]
+        guard signature.count == 65 else {
+            return "0x" + signature.toHexString()
+        }
+
+        let r = signature.prefix(32)
+        let s = signature.subdata(in: 32..<64)
+        let v = signature.subdata(in: 64..<65)
+
+        return "0x" + r.toHexString() + s.toHexString() + v.toHexString()
+    }
+    
+    /// Helper function to deserializes a signature string into an `UnmarshaledSignature` object.
+    ///
+    /// - Parameter signature: The signature string in hex format.
+    ///
+    /// - Returns: An `UnmarshaledSignature` object containing the v, r, and s components of the signature.
+    /// - Throws: `BaseError` if the signature format is invalid or cannot be parsed.
+    static func deserializeSignature(_ signature: String) throws -> SECP256K1.UnmarshaledSignature {
+        guard let signatureData = HexUtils.hexToData(hex: signature),
+              signatureData.count == 65 else {
+            throw BaseError(shortMessage: "Invalid signature format")
+        }
+
+        let r = signatureData.subdata(in: 0..<32)
+        let s = signatureData.subdata(in: 32..<64)
+        let v = signatureData[64]
+
+        return SECP256K1.UnmarshaledSignature(v: v, r: r, s: s)
+    }
+
     static func toData(value: String) -> Data {
         let data: Data
 
@@ -826,7 +864,7 @@ extension Utils {
         let function = ABI.Element.Function(name: functionName,
                                             inputs: [input1, input2],
                                             outputs: [output],
-                                            constant: false,
+                                            constant: true,
                                             payable: false)
         let params: [Any] = [digest, signature]
         guard let data = function.encodeParameters(params) else {
@@ -878,7 +916,7 @@ extension Utils {
         let function = ABI.Element.Function(name: functionName,
                                             inputs: [input1, input2],
                                             outputs: [output],
-                                            constant: false,
+                                            constant: true,
                                             payable: false)
 
         guard let toAddress = EthereumAddress(account) else {
@@ -913,6 +951,10 @@ extension Utils {
         return HexUtils.dataToHex(result)
     }
 
+    static func getDefaultWalletName(prefix: String) -> String {
+        return "\(prefix)-\(getCurrentDateTime())"
+    }
+
     static func getCurrentDateTime() -> String {
         let dateFormatter = ISO8601DateFormatter()
         dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
@@ -920,6 +962,213 @@ extension Utils {
 
         let currentDate = Date()
         return dateFormatter.string(from: currentDate)
+    }
+    
+    /// Checks if an address is an owner of a specified account.
+    ///
+    /// - Parameters:
+    ///   - transport: The transport layer for making RPC calls
+    ///   - account: The account address to check
+    ///   - ownerToCheck: The potential owner address to verify
+    ///
+    /// - Returns: Boolean indicating whether ownerToCheck is an owner of the account
+    static func isOwnerOf(
+        transport: Transport,
+        account: String,
+        ownerToCheck: String
+    ) async throws -> Bool {
+        let functionName = "isOwnerOf"
+        let input1 = InOut(name: "account", type: .address)
+        let input2 = InOut(name: "ownerToCheck", type: .address)
+        let output = InOut(name: "", type: .bool)
+        let function = ABI.Element.Function(name: functionName,
+                                            inputs: [input1, input2],
+                                            outputs: [output],
+                                            constant: true,
+                                            payable: false)
+
+        guard let toAddress = EthereumAddress(CIRCLE_WEIGHTED_WEB_AUTHN_MULTISIG_PLUGIN) else {
+            logger.utils.notice("Invalid address: \(CIRCLE_WEIGHTED_WEB_AUTHN_MULTISIG_PLUGIN)")
+            throw BaseError(shortMessage: "Invalid address: \(CIRCLE_WEIGHTED_WEB_AUTHN_MULTISIG_PLUGIN)")
+        }
+
+        let params: [Any] = [account, ownerToCheck]
+        guard let data = function.encodeParameters(params) else {
+            logger.utils.notice("isOwnerOf function encodeParameters failure (\(params))")
+            throw BaseError(shortMessage: "isOwnerOf function encodeParameters failure (\(params))")
+        }
+        var transaction = CodableTransaction(to: toAddress, data: data)
+        transaction.from = EthereumAddress(account)
+
+        logger.utils.debug(
+            """
+            isOwnerOf > call
+            Account: \(account)
+            OwnerToCheck: \(ownerToCheck)
+            """
+        )
+
+        guard let callResult = try? await Utils().ethCall(transport: transport,
+                                                          transaction: transaction) else {
+            logger.utils.notice("Failed to execute eth_call request for isOwnerOf")
+            throw BaseError(shortMessage: "Failed to execute eth_call request for isOwnerOf")
+        }
+
+        guard let callResultData = HexUtils.hexToData(hex: callResult),
+              let decoded = try? function.decodeReturnData(callResultData) else {
+            logger.utils.notice("isOwnerOf function decodeReturnData failure")
+            throw BaseError(shortMessage: "isOwnerOf function decodeReturnData failure")
+        }
+
+        if decoded.isEmpty {
+            logger.utils.warning("Empty response from isOwner call")
+            return false
+        }
+
+        guard let result = decoded["0"] as? Bool else {
+            logger.utils.notice("The data type returned by eth_call request is incorrect")
+            throw BaseError(shortMessage: "The data type returned by eth_call request is incorrect")
+        }
+
+        return result
+    }
+    
+    /// Checks if an address is an owner of a specified account.
+    ///
+    /// - Parameters:
+    ///   - transport: The transport layer for making RPC calls
+    ///   - account: The account address to check
+    ///   - xOfOwnerToCheck: The x-coordinate of the public key of the potential owner to verify
+    ///   - yOfOwnerToCheck: The y-coordinate of the public key of the potential owner to verify
+    ///
+    /// - Returns: Boolean indicating whether ownerToCheck is an owner of the account
+    static func isOwnerOf(
+        transport: Transport,
+        account: String,
+        xOfOwnerToCheck: BigUInt,
+        yOfOwnerToCheck: BigUInt
+    ) async throws -> Bool {
+        let functionName = "isOwnerOf"
+        let input1 = InOut(name: "account", type: .address)
+        let input2 = InOut(name: "pubKeyOwnerToCheck", type: .tuple(types: [.uint(bits: 256), .uint(bits: 256)]))
+        let output = InOut(name: "", type: .bool)
+        let function = ABI.Element.Function(name: functionName,
+                                            inputs: [input1, input2],
+                                            outputs: [output],
+                                            constant: true,
+                                            payable: false)
+
+        guard let toAddress = EthereumAddress(CIRCLE_WEIGHTED_WEB_AUTHN_MULTISIG_PLUGIN) else {
+            logger.utils.notice("Invalid address: \(CIRCLE_WEIGHTED_WEB_AUTHN_MULTISIG_PLUGIN)")
+            throw BaseError(shortMessage: "Invalid address: \(CIRCLE_WEIGHTED_WEB_AUTHN_MULTISIG_PLUGIN)")
+        }
+
+        let publicKeys = [xOfOwnerToCheck, yOfOwnerToCheck]
+        let params: [Any] = [account, publicKeys]
+        guard let data = function.encodeParameters(params) else {
+            logger.utils.notice("isOwnerOf function encodeParameters failure (\(params))")
+            throw BaseError(shortMessage: "isOwnerOf function encodeParameters failure (\(params))")
+        }
+        var transaction = CodableTransaction(to: toAddress, data: data)
+        transaction.from = EthereumAddress(account)
+
+        logger.utils.debug(
+            """
+            isOwnerOf > call
+            Account: \(account)
+            xOfOwnerToCheck: \(xOfOwnerToCheck.description)
+            yOfOwnerToCheck: \(yOfOwnerToCheck.description)
+            """
+        )
+
+        guard let callResult = try? await Utils().ethCall(transport: transport,
+                                                          transaction: transaction) else {
+            logger.utils.notice("Failed to execute eth_call request for isOwnerOf")
+            throw BaseError(shortMessage: "Failed to execute eth_call request for isOwnerOf")
+        }
+
+        guard let callResultData = HexUtils.hexToData(hex: callResult),
+              let decoded = try? function.decodeReturnData(callResultData) else {
+            logger.utils.notice("isOwnerOf function decodeReturnData failure")
+            throw BaseError(shortMessage: "isOwnerOf function decodeReturnData failure")
+        }
+
+        if decoded.isEmpty {
+            logger.utils.warning("Empty response from isOwner call")
+            return false
+        }
+
+        guard let result = decoded["0"] as? Bool else {
+            logger.utils.notice("The data type returned by eth_call request is incorrect")
+            throw BaseError(shortMessage: "The data type returned by eth_call request is incorrect")
+        }
+
+        return result
+    }
+
+    static func getAddOwnersData(
+        credential: WebAuthnCredential
+    ) throws -> String? {
+        if credential.publicKey.isEmpty {
+            throw BaseError(shortMessage: "WebAuthn credential has missing public key")
+        }
+
+        let pubKey = WebAuthnCircleSmartAccountDelegate.extractXYFromCOSE(credential.publicKey)
+        if pubKey.0 == .zero, pubKey.1 == .zero {
+            throw BaseError(
+                shortMessage: "Invalid public key: failed to parse P256 signature"
+            )
+        }
+
+        let publicKeys = [
+            pubKey.0,
+            pubKey.1
+        ]
+
+        return try getAddOwnersData(
+            ownersToAdd: [],
+            weightsToAdd: [],
+            publicKeyOwnersToAdd: [publicKeys],
+            publicKeyWeightsToAdd: [OWNER_WEIGHT]
+        )
+    }
+
+    static func getAddOwnersData(
+        ownerToAdd: String
+    ) throws -> String? {
+        return try getAddOwnersData(
+            ownersToAdd: [ownerToAdd],
+            weightsToAdd: [OWNER_WEIGHT],
+            publicKeyOwnersToAdd: [],
+            publicKeyWeightsToAdd: []
+        )
+    }
+
+    static func getAddOwnersData(
+        ownersToAdd: [Any],
+        weightsToAdd: [Any],
+        publicKeyOwnersToAdd: [Any],
+        publicKeyWeightsToAdd: [Any]
+    ) throws -> String? {
+        if !ownersToAdd.isEmpty, ownersToAdd.count != weightsToAdd.count {
+            throw BaseError(shortMessage: "Number of owners must match the number of weights")
+        }
+
+        if !publicKeyOwnersToAdd.isEmpty, publicKeyOwnersToAdd.count != publicKeyWeightsToAdd.count {
+            throw BaseError(shortMessage: "Number of public key owners must match the number of weights")
+        }
+
+        return self.encodeFunctionData(
+            functionName: "addOwners",
+            abiJson: CIRCLE_PLUGIN_ADD_OWNERS_ABI,
+            args: [
+                ownersToAdd,            // recovery address
+                weightsToAdd,
+                publicKeyOwnersToAdd,
+                publicKeyWeightsToAdd,
+                0                       // newThresholdWeight, 0 means no change
+            ]
+        )
     }
 }
 
@@ -936,7 +1185,7 @@ extension Utils: PublicRpcApi {
         let function = ABI.Element.Function(name: functionName,
                                             inputs: [input1, input2],
                                             outputs: [output],
-                                            constant: false,
+                                            constant: true,
                                             payable: false)
         let params: [Any] = [address, key]
 

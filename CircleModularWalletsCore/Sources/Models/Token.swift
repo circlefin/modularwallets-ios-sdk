@@ -18,17 +18,7 @@
 
 import Foundation
 
-public enum PolygonToken: String {
-    case USDC
-    
-    public var chainId: Int {
-        return Polygon.chainId
-    }
-    
-    public var name: String {
-        return "Polygon_\(self.rawValue)"
-    }
-}
+// MARK: Mainnet Tokens
 
 public enum ArbitrumToken: String {
     case USDC
@@ -40,6 +30,18 @@ public enum ArbitrumToken: String {
     
     public var name: String {
         return "Arbitrum_\(self.rawValue)"
+    }
+}
+
+public enum AvalancheToken: String {
+    case USDC
+
+    public var chainId: Int {
+        return Avalanche.chainId
+    }
+    
+    public var name: String {
+        return "Avalanche_\(self.rawValue)"
     }
 }
 
@@ -68,6 +70,18 @@ public enum OptimismToken: String {
     }
 }
 
+public enum PolygonToken: String {
+    case USDC
+    
+    public var chainId: Int {
+        return Polygon.chainId
+    }
+    
+    public var name: String {
+        return "Polygon_\(self.rawValue)"
+    }
+}
+
 public enum UnichainToken: String {
     case USDC
 
@@ -80,17 +94,7 @@ public enum UnichainToken: String {
     }
 }
 
-public enum PolygonAmoyToken: String {
-    case USDC
-    
-    public var chainId: Int {
-        return PolygonAmoy.chainId
-    }
-    
-    public var name: String {
-        return "PolygonAmoy_\(self.rawValue)"
-    }
-}
+// MARK: - Testnet Tokens
 
 public enum ArbitrumSepoliaToken: String {
     case USDC
@@ -101,6 +105,18 @@ public enum ArbitrumSepoliaToken: String {
     
     public var name: String {
         return "ArbitrumSepolia_\(self.rawValue)"
+    }
+}
+
+public enum AvalancheFujiToken: String {
+    case USDC
+
+    public var chainId: Int {
+        return AvalancheFuji.chainId
+    }
+    
+    public var name: String {
+        return "AvalancheFuji_\(self.rawValue)"
     }
 }
 
@@ -125,6 +141,18 @@ public enum OptimismSepoliaToken: String {
 
     public var name: String {
         return "OptimismSepolia_\(self.rawValue)"
+    }
+}
+
+public enum PolygonAmoyToken: String {
+    case USDC
+    
+    public var chainId: Int {
+        return PolygonAmoy.chainId
+    }
+    
+    public var name: String {
+        return "PolygonAmoy_\(self.rawValue)"
     }
 }
 

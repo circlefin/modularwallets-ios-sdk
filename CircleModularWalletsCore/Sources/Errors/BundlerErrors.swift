@@ -40,6 +40,7 @@ public class AccountNotDeployedError: BaseError, @unchecked Sendable {
 @_documentation(visibility: private)
 public class ExecutionRevertedError: BaseError, @unchecked Sendable {
     static let code: Int = -32521
+    static let message = "execution reverted"
 
     init(cause: BaseError? = nil, message: String? = nil) {
         super.init(shortMessage: ExecutionRevertedError.getMessage(message),

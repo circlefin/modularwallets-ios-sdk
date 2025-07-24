@@ -51,7 +51,7 @@ public let CIRCLE_PLUGIN_ADD_OWNERS_ABI = """
       },
       {
         "internalType": "uint256[]",
-        "name": "pubicKeyWeightsToAdd",
+        "name": "publicKeyWeightsToAdd",
         "type": "uint256[]"
       },
       {

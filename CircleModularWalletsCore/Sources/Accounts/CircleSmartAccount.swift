@@ -30,22 +30,42 @@ import web3swift
 ///   - name: The wallet name assigned to the newly registered account defaults to the format: "passkey-yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
 ///
 /// - Returns: The created Circle smart account.
-public func toCircleSmartAccount<A: Account>(
+public func toCircleSmartAccount(
     client: Client,
-    owner: A,
+    owner: WebAuthnAccount,
     version: String = CIRCLE_SMART_ACCOUNT_VERSION_V1,
     name: String? = nil
-) async throws -> CircleSmartAccount<A> where A.T == SignResult {
+) async throws -> CircleSmartAccount {
     let version = CIRCLE_SMART_ACCOUNT_VERSION[version] ?? version
-    let name = name ?? "passkey-\(Utils.getCurrentDateTime())"
+    let name = name ?? Utils.getDefaultWalletName(prefix: WebAuthnCircleSmartAccountDelegate.WALLET_PREFIX)
+    return try await .init(client: client, owner: owner, version: version, name: name)
+}
+
+/// Creates a Circle smart account.
+///
+/// - Parameters:
+///   - client: The client used to interact with the blockchain.
+///   - owner: The owner account associated with the Circle smart account.
+///   - version: The version of the Circle smart account. Default is CIRCLE_SMART_ACCOUNT_VERSION_V1.
+///   - name: The wallet name assigned to the newly registered account defaults to the format: "wallet-yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+///
+/// - Returns: The created Circle smart account.
+public func toCircleSmartAccount(
+    client: Client,
+    owner: LocalAccount,
+    version: String = CIRCLE_SMART_ACCOUNT_VERSION_V1,
+    name: String? = nil
+) async throws -> CircleSmartAccount {
+    let version = CIRCLE_SMART_ACCOUNT_VERSION[version] ?? version
+    let name = name ?? Utils.getDefaultWalletName(prefix: LocalCircleSmartAccountDelegate.WALLET_PREFIX)
     return try await .init(client: client, owner: owner, version: version, name: name)
 }
 
 /// A Circle smart account.
-public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable where A.T == SignResult {
+public class CircleSmartAccount: SmartAccount, @unchecked Sendable {
     public let client: Client
     public let entryPoint: EntryPoint
-    let owner: A
+    let delegate: CircleSmartAccountDelegate
     let wallet: ModularWallet
     private var deployed: Bool = false
     private let nonceManager = NonceManager(source: NonceManagerSourceImpl())
@@ -54,32 +74,46 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
     ///
     /// - Parameters:
     ///   - client: The client used to interact with the blockchain.
-    ///   - owner: The owner account associated with the Circle smart account.
+    ///   - delegate: The delegate for Circle smart account operations.
     ///   - wallet: The created wallet information.
     ///   - entryPoint: The entry point for the smart account. Default is ``EntryPoint.v07``.
-    init(client: Client, owner: A, wallet: ModularWallet, entryPoint: EntryPoint = .v07) {
+    init(client: Client, delegate: CircleSmartAccountDelegate, wallet: ModularWallet, entryPoint: EntryPoint = .v07) {
         self.client = client
-        self.owner = owner
+        self.delegate = delegate
         self.wallet = wallet
         self.entryPoint = entryPoint
     }
 
-    convenience init(client: Client, owner: A, version: String, name: String?) async throws {
+    convenience init(client: Client, owner: WebAuthnAccount, version: String, name: String?) async throws {
         guard let bundlerTransport = client.transport as? ModularTransport else {
-            throw BaseError(shortMessage: "The property client.transport is not the ModularTransport")
-        }
-        guard let webAuthnAccount = owner as? WebAuthnAccount else {
-            throw BaseError(shortMessage: "The property owner is not the WebAuthnAccount")
+            throw BaseError(shortMessage: "The property client.transport is not the ModularTransport (found \(type(of: client.transport)))")
         }
 
-        let wallet = try await Self.createWallet(
+        let delegate = WebAuthnCircleSmartAccountDelegate(owner)
+
+        let wallet = try await delegate.getModularWalletAddress(
             transport: bundlerTransport,
-            hexPublicKey: webAuthnAccount.credential.publicKey,
             version: version,
             name: name
         )
 
-        self.init(client: client, owner: owner, wallet: wallet)
+        self.init(client: client, delegate: delegate, wallet: wallet)
+    }
+
+    convenience init(client: Client, owner: LocalAccount, version: String, name: String?) async throws {
+        guard let bundlerTransport = client.transport as? ModularTransport else {
+            throw BaseError(shortMessage: "The property client.transport is not the ModularTransport (found \(type(of: client.transport)))")
+        }
+
+        let delegate = LocalCircleSmartAccountDelegate(owner)
+
+        let wallet = try await delegate.getModularWalletAddress(
+            transport: bundlerTransport,
+            version: version,
+            name: name
+        )
+
+        self.init(client: client, delegate: delegate, wallet: wallet)
     }
 
     /// Configuration for the user operation.
@@ -198,20 +232,7 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
             hash: messageHash
         )
 
-        do {
-            let signResult = try await owner.sign(messageHash: replaySafeMessageHash)
-            let signature = encodePackedForSignature(
-                signResult: signResult,
-                publicKey: owner.getAddress(),
-                hasUserOpGas: false
-            )
-            return signature
-        } catch let error as BaseError {
-            throw error
-        } catch {
-            throw BaseError(shortMessage: "CircleSmartAccount.owner.sign(hash: \"\(replaySafeMessageHash)\") failure",
-                            args: .init(cause: error, name: String(describing: error)))
-        }
+        return try await delegate.signAndWrap(hash: replaySafeMessageHash, hasUserOpGas: false)
     }
 
     /// Signs a [EIP-191 Personal Sign message](https://eips.ethereum.org/EIPS/eip-191).
@@ -232,20 +253,7 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
             hash: hashedMessage
         )
 
-        do {
-            let signResult = try await owner.sign(messageHash: replaySafeMessageHash)
-            let signature = encodePackedForSignature(
-                signResult: signResult,
-                publicKey: owner.getAddress(),
-                hasUserOpGas: false
-            )
-            return signature
-        } catch let error as BaseError {
-            throw error
-        } catch {
-            throw BaseError(shortMessage: "CircleSmartAccount.owner.sign(hash: \"\(replaySafeMessageHash)\") failure",
-                            args: .init(cause: error, name: String(describing: error)))
-        }
+        return try await delegate.signAndWrap(hash: replaySafeMessageHash, hasUserOpGas: false)
     }
 
     /// Signs a given typed data.
@@ -268,20 +276,7 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
             hash: hashedTypedData
         )
 
-        do {
-            let signResult = try await owner.sign(messageHash: replaySafeMessageHash)
-            let signature = encodePackedForSignature(
-                signResult: signResult,
-                publicKey: owner.getAddress(),
-                hasUserOpGas: false
-            )
-            return signature
-        } catch let error as BaseError {
-            throw error
-        } catch {
-            throw BaseError(shortMessage: "CircleSmartAccount.owner.sign(hash: \"\(replaySafeMessageHash)\") failure",
-                            args: .init(cause: error, name: String(describing: error)))
-        }
+        return try await delegate.signAndWrap(hash: replaySafeMessageHash, hasUserOpGas: false)
     }
 
     /// Signs a given user operation.
@@ -299,22 +294,7 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
             userOp: userOp
         )
 
-        let hash = Utils.hashMessage(hex: userOpHash)
-
-        do {
-            let signResult = try await owner.sign(messageHash: hash)
-            let signature = encodePackedForSignature(
-                signResult: signResult,
-                publicKey: owner.getAddress(),
-                hasUserOpGas: true
-            )
-            return signature
-        } catch let error as BaseError {
-            throw error
-        } catch {
-            throw BaseError(shortMessage: "CircleSmartAccount.owner.sign(hex: hash(\"\(userOpHash)\")) failure",
-                            args: .init(cause: error, name: String(describing: error)))
-        }
+        return try await delegate.signAndWrap(hash: userOpHash, hasUserOpGas: true)
     }
 
     /// Returns the initialization code for the Circle smart account.
@@ -328,34 +308,6 @@ public class CircleSmartAccount<A: Account>: SmartAccount, @unchecked Sendable w
 extension CircleSmartAccount: PublicRpcApi {
 
     // MARK: Internal Usage
-
-    static func createWallet(
-        transport: ModularTransport,
-        hexPublicKey: String,
-        version: String,
-        name: String? = nil
-    ) async throws -> ModularWallet {
-        let (publicKeyX, publicKeyY) = Self.extractXYFromCOSE(hexPublicKey)
-        let request = GetAddressReq(
-            scaConfiguration: ScaConfiguration(
-                initialOwnershipConfiguration: .init(
-                    ownershipContractAddress: nil,
-                    weightedMultiSig: .init(
-                        owners: nil,
-                        webauthnOwners: [.init(publicKeyX: publicKeyX.description,
-                                               publicKeyY: publicKeyY.description,
-                                               weight: PUBLIC_KEY_OWN_WEIGHT)],
-                        thresholdWeight: THRESHOLD_WEIGHT)
-                ),
-                scaCore: version,
-                initCode: nil),
-            metadata: .init(name: name)
-        )
-
-        let wallet = try await transport.getAddress(transport: transport, req: request)
-
-        return wallet
-    }
 
     /// Checks if the account is deployed.
     ///
@@ -371,186 +323,5 @@ extension CircleSmartAccount: PublicRpcApi {
         } catch {
             return false
         }
-    }
-
-    /// Remove the private access control for unit testing
-    func encodePackedForSignature(
-        signResult: SignResult,
-        publicKey: String,
-        hasUserOpGas: Bool
-    ) -> String {
-        let pubKey = Self.extractXYFromCOSE(publicKey)
-        let sender = Self.getSender(x: pubKey.0, y: pubKey.1)
-
-        let formattedSender = Self.getFormattedSender(sender: sender)
-        let sigType: UInt8 = hasUserOpGas ? 34 : 2
-        let sigBytes = encodeWebAuthnSigDynamicPart(signResult: signResult)
-
-        let encoded = Utils.encodePacked([
-            formattedSender,
-            /// dynamicPos
-            /// 32-bytes public key onchain id
-            /// 32-bytes webauth, signature and public key position
-            /// 1-byte signature type
-            /// https://github.com/circlefin/buidl-wallet-contracts/blob/7388395fac2ac8bcd19af9a1caaac5df3c4813f2/docs/Smart_Contract_Signatures_Encoding.md#sigtype--2
-            65,
-            sigType,
-            sigBytes.count,
-            sigBytes
-        ]).addHexPrefix()
-
-        return encoded
-    }
-
-    private func encodeWebAuthnSigDynamicPart(signResult: SignResult) -> Data {
-        guard let (rData, sData) = Utils.extractRSFromDER(signResult.signature) else {
-            logger.passkeyAccount.notice("Can't extract the r, s from a DER-encoded ECDSA signature")
-            return .init()
-        }
-
-        let (r, s) = (BigUInt(rData), BigUInt(sData))
-
-        let encoded = Self.encodeParametersWebAuthnSigDynamicPart(
-            authenticatorDataString: signResult.webAuthn.authenticatorData,
-            clientDataJSON: signResult.webAuthn.clientDataJSON,
-            challengeIndex: signResult.webAuthn.challengeIndex,
-            typeIndex: signResult.webAuthn.typeIndex,
-            userVerificationRequired: signResult.webAuthn.userVerificationRequired,
-            r: r,
-            s: s
-        )
-
-        return encoded
-    }
-
-    static func encodeParametersWebAuthnSigDynamicPart(
-        authenticatorDataString: String,    // Hex
-        clientDataJSON: String,             // Base64URL decoded
-        challengeIndex: Int,
-        typeIndex: Int,
-        userVerificationRequired: Bool,
-        r: BigUInt,
-        s: BigUInt
-    ) -> Data {
-        let types: [ABI.Element.ParameterType] = [
-            .tuple(types: [
-                .tuple(types: [
-                    .dynamicBytes,
-                    .string,
-                    .uint(bits: 256),
-                    .uint(bits: 256),
-                    .bool]),
-                .uint(bits: 256),
-                .uint(bits: 256)
-            ])
-        ]
-
-        var authenticatorData = [UInt8]()
-        if let _authenticatorData = try? HexUtils.hexToBytes(hex: authenticatorDataString) {
-            authenticatorData = _authenticatorData
-        }
-
-        let values: [Any] = [
-            [
-                [
-                    authenticatorData,
-                    clientDataJSON,
-                    BigUInt(challengeIndex),
-                    BigUInt(typeIndex),
-                    userVerificationRequired
-                ],
-                r,
-                s
-            ]
-        ]
-
-        var encoded = Data()
-        if let _encoded = ABIEncoder.encode(types: types, values: values) {
-            encoded = _encoded
-        }
-
-        return encoded
-    }
-
-    private static func extractXYFromCOSE(_ keyHex: String) -> (BigUInt, BigUInt) {
-        let xy = Self.extractXYFromCOSEBytes(keyHex)
-        return (BigUInt(Data(xy.0)), BigUInt(Data(xy.1)))
-    }
-
-    private static func extractXYFromCOSEBytes(_ keyHex: String) -> ([UInt8], [UInt8]) {
-
-        guard let bytes = try? HexUtils.hexToBytes(hex: keyHex) else {
-            logger.passkeyAccount.error("Failed to decode the publicKey (COSE_Key format) hex string into UInt8 array.")
-            return (.init(), .init())
-        }
-
-        // EC2 key type
-        guard bytes.count == 77 else {
-            logger.passkeyAccount.error("Insufficient bytes length; does not comply with COSE Key format EC2 key type.")
-            return (.init(), .init())
-        }
-
-        let offset = 10
-
-        let x = Array(bytes[offset..<(offset + 32)])
-        let y = Array(bytes[(offset + 32 + 3)..<(offset + 64 + 3)])
-
-        return (x, y)
-    }
-
-    static func getSender(x: BigUInt, y: BigUInt) -> String {
-        let encoded = encodeParametersGetSender(x, y)
-        let hash = encoded.sha3(.keccak256)
-        return HexUtils.dataToHex(hash)
-    }
-
-    static func encodeParametersGetSender(_ x: BigUInt, _ y: BigUInt) -> Data {
-        let types: [ABI.Element.ParameterType] = [
-            .uint(bits: 256),
-            .uint(bits: 256)
-        ]
-        let values = [x, y]
-
-        let encoded = ABIEncoder.encode(types: types, values: values) ?? Data()
-
-        return encoded
-    }
-
-    static func getFormattedSender(sender: String) -> [UInt8] {
-        func slice(value: String,
-                   start: Int? = nil,
-                   end: Int? = nil,
-                   strict: Bool = false) -> String {
-            let cleanValue = value.noHexPrefix
-            let startIndex = (start ?? 0) * 2
-            let endIndex = (end ?? (cleanValue.count / 2)) * 2
-
-            guard startIndex >= 0, endIndex <= cleanValue.count, startIndex <= endIndex else {
-                logger.passkeyAccount.notice("Return \"0x\" if indices are invalid")
-                return "0x"
-            }
-
-            let slicedValue = "0x" + cleanValue[startIndex..<endIndex]
-            
-            // This block is never executed because the `strict` parameter is always set to its default value (`false`).
-//            if strict {
-//                guard slicedValue.range(of: "^0x[0-9a-fA-F]*$", options: .regularExpression) != nil else {
-//                    logger.passkeyAccount.notice("Invalid hexadecimal string")
-//                    return "0x"
-//                }
-//            }
-
-            return slicedValue
-        }
-
-        let slicedSender = slice(value: sender, start: 2)
-        let paddedSlicedSender = slicedSender.noHexPrefix.leftPadding(toLength: 32 * 2, withPad: "0").addHexPrefix()
-
-        guard let formattedSender = try? HexUtils.hexToBytes(hex: paddedSlicedSender) else {
-            logger.passkeyAccount.error("Failed to get formatted sender")
-            return .init()
-        }
-
-        return formattedSender
     }
 }

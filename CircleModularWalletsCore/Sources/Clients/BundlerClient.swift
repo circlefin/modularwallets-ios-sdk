@@ -116,7 +116,7 @@ public class BundlerClient: Client, BundlerRpcApi, PublicRpcApi {
         partialUserOp: UserOperationV07 = .init(),
         paymaster: Paymaster? = nil,
         estimateFeesPerGas: ((SmartAccount, BundlerClient, UserOperationV07) async -> EstimateFeesPerGasResult)? = nil
-    ) async throws -> String? {
+    ) async throws -> String {
         if !(partialUserOp.signature?.isEmpty ?? true) {
             return try await self.sendUserOperation(
                 transport: transport,
@@ -273,7 +273,7 @@ public class BundlerClient: Client, BundlerRpcApi, PublicRpcApi {
     public func createAddressMapping(
         walletAddress: String,
         owners: [AddressMappingOwner]
-    ) async throws -> [CreateAddressMappingResult] {
+    ) async throws -> [AddressMappingResult] {
         guard let bundlerTransport = transport as? ModularTransport else {
             throw BaseError(shortMessage: "The property transport is not the ModularTransport")
         }
@@ -285,7 +285,274 @@ public class BundlerClient: Client, BundlerRpcApi, PublicRpcApi {
         )
     }
     
+    /// Gets the address mapping for a given owner.
+    ///
+    /// - Note: This feature is only available in Circle Buidl Wallets service.
+    ///
+    /// - Parameter owner: The owner information.
+    /// - Returns: An array of address mappings associated with the given owner.
+    public func getAddressMapping(
+        owner: AddressMappingOwner
+    ) async throws -> [AddressMappingResult] {
+        guard let bundlerTransport = transport as? ModularTransport else {
+            throw BaseError(shortMessage: "The property transport is not the ModularTransport")
+        }
+
+        return try await bundlerTransport.getAddressMapping(
+            transport: bundlerTransport,
+            owner: owner
+        )
+    }
+    
+    /// Estimates the gas required to register a recovery address during the recovery process.
+    ///
+    /// - Parameters:
+    ///   - account: The Account to use for User Operation execution.
+    ///   - recoveryAddress: The derived address of the recovery key.
+    ///   - partialUserOp: A partially constructed UserOperation object that can include custom gas parameters.
+    ///                    The `callData` field, if provided, will be **overwritten internally**
+    ///                    with the encoded `addOwners` call data based on `recoveryAddress`.
+    ///   - paymaster: Sets Paymaster configuration for the User Operation.
+    ///   - estimateFeesPerGas: Prepares fee properties for the User Operation request.
+    ///
+    /// - Returns: An estimate of gas values necessary to register a recovery address.
+    public func estimateRegisterRecoveryAddressGas(
+        account: SmartAccount,
+        recoveryAddress: String,
+        partialUserOp: UserOperationV07 = UserOperationV07(),
+        paymaster: Paymaster? = nil,
+        estimateFeesPerGas: ((SmartAccount, BundlerClient, UserOperationV07) async -> EstimateFeesPerGasResult)? = nil
+    ) async throws -> EstimateUserOperationGasResult {
+        if !Utils.isAddress(recoveryAddress) {
+            throw BaseError(shortMessage: "Invalid recovery address format")
+        }
+
+        logger.bundler.debug("Estimating gas for registering recovery address \(recoveryAddress) for account \(account.getAddress())")
+
+        let addOwnersData = try Utils.getAddOwnersData(ownerToAdd: recoveryAddress)
+
+        let updatedUserOp = partialUserOp
+        updatedUserOp.callData = addOwnersData
+        let userOp = try await prepareUserOperation(
+            transport: transport,
+            account: account,
+            calls: nil,
+            partialUserOp: updatedUserOp,
+            paymaster: paymaster,
+            bundlerClient: self,
+            estimateFeesPerGas: estimateFeesPerGas
+        )
+
+        return try await estimateUserOperationGas(
+            transport: transport,
+            userOp: userOp,
+            entryPoint: account.entryPoint
+        )
+    }
+
+    /// Estimates the gas required to execute and finalize the recovery process.
+    ///
+    /// - Parameters:
+    ///   - account: The Account to use for User Operation execution.
+    ///   - credential: The newly registered passkey credential.
+    ///   - partialUserOp: A partially constructed UserOperation object that can include custom gas parameters.
+    ///                    The `callData` field, if provided, will be **overwritten internally**
+    ///                    with the encoded `addOwners` call data based on `credential`.
+    ///   - paymaster: Sets Paymaster configuration for the User Operation.
+    ///   - estimateFeesPerGas: Prepares fee properties for the User Operation request.
+    ///
+    /// - Returns: An estimate of gas values necessary to execute recovery.
+    public func estimateExecuteRecoveryGas(
+            account: SmartAccount,
+            credential: WebAuthnCredential,
+            partialUserOp: UserOperationV07 = UserOperationV07(),
+            paymaster: Paymaster? = nil,
+            estimateFeesPerGas: ((SmartAccount, BundlerClient, UserOperationV07) async -> EstimateFeesPerGasResult)? = nil
+    ) async throws -> EstimateUserOperationGasResult {
+        let addOwnersData = try Utils.getAddOwnersData(credential: credential)
+
+        let updatedUserOp = partialUserOp
+        updatedUserOp.callData = addOwnersData
+        let userOp = try await prepareUserOperation(
+            transport: transport,
+            account: account,
+            calls: nil,
+            partialUserOp: updatedUserOp,
+            paymaster: paymaster,
+            bundlerClient: self,
+            estimateFeesPerGas: estimateFeesPerGas
+        )
+
+        return try await estimateUserOperationGas(
+            transport: transport,
+            userOp: userOp,
+            entryPoint: account.entryPoint
+        )
+    }
+
+    /// Registers a recovery address for a Smart Account.
+    ///
+    /// - Parameters:
+    ///   - account: The Account to use for User Operation execution.
+    ///   - recoveryAddress: The recovery address to register.
+    ///   - partialUserOp: The partial User Operation to be completed.
+    ///   - paymaster: Sets Paymaster configuration for the User Operation.
+    ///   - estimateFeesPerGas: Prepares fee properties for the User Operation request.
+    ///
+    /// - Returns: The hash of the sent User Operation.
+    public func registerRecoveryAddress(
+        account: SmartAccount,
+        recoveryAddress: String,
+        partialUserOp: UserOperationV07 = UserOperationV07(),
+        paymaster: Paymaster? = nil,
+        estimateFeesPerGas: ((SmartAccount, BundlerClient, UserOperationV07) async -> EstimateFeesPerGasResult)? = nil
+    ) async throws -> String? {
+        if !Utils.isAddress(recoveryAddress) {
+            throw BaseError(shortMessage: "Invalid recovery address format: \(recoveryAddress)")
+        }
+
+        logger.bundler.debug("Registering recovery address \(recoveryAddress) for account \(account.getAddress())")
+
+        // Step 1: Create a mapping between the MSCA address and the recovery address
+        let owners: [AddressMappingOwner] = [
+            EoaAddressMappingOwner(EOAIdentifier(address: recoveryAddress))
+        ]
+
+        do {
+            _ = try await createAddressMapping(
+                walletAddress: account.getAddress(),
+                owners: owners
+            )
+            logger.bundler.debug("Off-chain address mapping created successfully")
+        } catch let error as InvalidParamsRpcError {
+            /// Ignore "address mapping already exists" errors to ensure idempotency and allow safe retries.
+            /// This prevents inconsistent states between RPC calls and onchain transactions.
+            if !ErrorUtils.isMappedError(error) {
+                throw BaseError(
+                    shortMessage: "Failed to register the recovery address. Please try again.",
+                    args: BaseErrorParameters(cause: error)
+                )
+            }
+        }
+
+        // Step 2: Encode the function call for the userOp
+        let addOwnersData = try Utils.getAddOwnersData(ownerToAdd: recoveryAddress)
+
+        // Step 3: Send user operation to store the recovery address onchain
+        do {
+            let updatedUserOp = partialUserOp
+            updatedUserOp.callData = addOwnersData
+
+            return try await sendUserOperation(
+                account: account,
+                calls: nil,     // Set to nil since callData is assigned directly
+                partialUserOp: updatedUserOp,
+                paymaster: paymaster,
+                estimateFeesPerGas: estimateFeesPerGas
+            )
+        } catch let error as UserOperationExecutionError {
+            if error.details == ExecutionRevertedError.message {
+                let isOwner = try await Utils.isOwnerOf(
+                    transport: transport,
+                    account: account.getAddress(),
+                    ownerToCheck: recoveryAddress
+                )
+                if isOwner {
+                    return nil
+                }
+            }
+            throw error
+        }
+    }
+
+    /// Executes and finalizes the recovery process.
+    ///
+    /// - Parameters:
+    ///   - account: The Account to use for User Operation execution.
+    ///   - credential: The newly registered passkey credential.
+    ///   - partialUserOp: A partially constructed UserOperation object.
+    ///                    The `callData` field, if provided, will be **overwritten internally**
+    ///                    with the encoded `addOwners` call data based on `credential`.
+    ///   - paymaster: Sets Paymaster configuration for the User Operation.
+    ///   - estimateFeesPerGas: Prepares fee properties for the User Operation request.
+    ///
+    /// - Returns: The hash of the sent User Operation, or `null` if no operation was sent because the recovery address already exists.
+    public func executeRecovery(
+        account: SmartAccount,
+        credential: WebAuthnCredential,
+        partialUserOp: UserOperationV07 = UserOperationV07(),
+        paymaster: Paymaster? = nil,
+        estimateFeesPerGas: ((SmartAccount, BundlerClient, UserOperationV07) async -> EstimateFeesPerGasResult)? = nil
+    ) async throws -> String? {
+        if credential.publicKey.isEmpty {
+            throw BaseError(shortMessage: "WebAuthn credential has missing public key")
+        }
+
+        let pubKey = WebAuthnCircleSmartAccountDelegate.extractXYFromCOSE(credential.publicKey)
+        if pubKey.0.isZero, pubKey.1.isZero {
+            throw BaseError(shortMessage: "WebAuthn credential has invalid public key")
+        }
+
+        logger.bundler.debug("Executing account recovery for \(account.getAddress()) for account \(account.getAddress()) with new credential")
+
+        // Step 1: Create a mapping between the MSCA address and the WebAuthn credential */
+        let owners: [AddressMappingOwner] = [
+            WebAuthnAddressMappingOwner(
+                WebAuthnIdentifier(
+                    publicKeyX: pubKey.0.description,
+                    publicKeyY: pubKey.1.description
+                )
+            )
+        ]
+
+        do {
+            _ = try await createAddressMapping(walletAddress: account.getAddress(), owners: owners)
+            logger.bundler.debug("Off-chain address mapping created successfully")
+        } catch let error as InvalidParamsRpcError {
+             /// Ignore "address mapping already exists" errors to ensure idempotency and allow safe retries.
+             /// This prevents inconsistent states between RPC calls and onchain transactions.
+            if !ErrorUtils.isMappedError(error) {
+                throw BaseError(
+                    shortMessage: "Failed to register the recovery address. Please try again.",
+                    args: BaseErrorParameters(cause: error)
+                )
+            }
+        }
+
+        // Step 2: Encode the function call for the userOp */
+        let addOwnersData = try Utils.getAddOwnersData(credential: credential)
+
+        // Step 3: Send user operation to store the recovery address onchain */
+        do {
+            let updatedUserOp = partialUserOp
+            updatedUserOp.callData = addOwnersData
+
+            return try await sendUserOperation(
+                account: account,
+                calls: nil, // Set to nil since callData is assigned directly.
+                partialUserOp: updatedUserOp,
+                paymaster: paymaster,
+                estimateFeesPerGas: estimateFeesPerGas
+            )
+        } catch let error as UserOperationExecutionError {
+            if error.details == ExecutionRevertedError.message {
+                let isOwner = try await Utils.isOwnerOf(
+                    transport: transport,
+                    account: account.getAddress(),
+                    xOfOwnerToCheck: pubKey.0,
+                    yOfOwnerToCheck: pubKey.1
+                )
+                if isOwner {
+                    return nil
+                }
+            }
+            throw error
+        }
+    }
+
     /// Gets the gas price options for a user operation with optional SDK version parameter.
+    ///
+    /// - Note: This feature is only available in Circle Buidl Wallets service.
     ///
     /// - Returns: The gas price options with low, medium, high tiers and optional verificationGasLimit.
     public func getUserOperationGasPrice() async throws -> GetUserOperationGasPriceResult {
