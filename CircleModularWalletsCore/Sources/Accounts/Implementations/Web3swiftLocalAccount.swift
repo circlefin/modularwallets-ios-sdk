@@ -57,8 +57,6 @@ class Web3swiftLocalAccount: Account {
     /// - Parameter privateKeyHex: The hex string representation of the private key.
     /// - Throws: An `BaseError` if the private key is invalid or cannot be converted to Data.
     convenience init(privateKeyHex: String) throws {
-        let privateKey: Data
-
         guard let privateKey = HexUtils.hexToData(hex: privateKeyHex) else {
             throw BaseError(shortMessage: "Invalid private key hex string")
         }
