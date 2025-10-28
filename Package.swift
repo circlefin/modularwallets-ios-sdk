@@ -22,7 +22,7 @@ import PackageDescription
 let package = Package(
     name: "CircleModularWalletsCore",
     platforms: [
-        .iOS(.v16)
+        .macOS("13.5"), .iOS(.v16)
     ],
     products: [
         .library(

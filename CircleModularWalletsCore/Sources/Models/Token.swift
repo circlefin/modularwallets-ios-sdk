@@ -108,6 +108,18 @@ public enum ArbitrumSepoliaToken: String {
     }
 }
 
+public enum ArcTestnetToken: String {
+    case USDC
+
+    public var chainId: Int {
+        return ArcTestnet.chainId
+    }
+
+    public var name: String {
+        return "ArcTestnet_\(self.rawValue)"
+    }
+}
+
 public enum AvalancheFujiToken: String {
     case USDC
 
