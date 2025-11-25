@@ -237,12 +237,13 @@ extension BundlerRpcApi {
                 // Some Bundlers fail if nullish gas values are provided for gas estimation :')
                 // So we will need to set a default zeroish value.
                 let tmpUserOp = userOp.copy()
-                tmpUserOp.callGasLimit = .zero
-                tmpUserOp.preVerificationGas = .zero
+                tmpUserOp.callGasLimit = tmpUserOp.callGasLimit ?? .zero
+                tmpUserOp.preVerificationGas = tmpUserOp.preVerificationGas ?? .zero
+                tmpUserOp.verificationGasLimit = tmpUserOp.verificationGasLimit ?? .zero
 
                 if paymaster != nil {
-                    tmpUserOp.paymasterVerificationGasLimit = .zero
-                    tmpUserOp.paymasterPostOpGasLimit = .zero
+                    tmpUserOp.paymasterVerificationGasLimit = tmpUserOp.paymasterVerificationGasLimit ?? .zero
+                    tmpUserOp.paymasterPostOpGasLimit = tmpUserOp.paymasterPostOpGasLimit ?? .zero
                 } else {
                     tmpUserOp.paymasterVerificationGasLimit = nil
                     tmpUserOp.paymasterPostOpGasLimit = nil
