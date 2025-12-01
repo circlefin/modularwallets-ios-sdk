@@ -70,7 +70,7 @@ public struct Utils {
                                           abiJson: String,
                                           args: [Any]) -> String? {
         guard let contract = try? EthereumContract(abiJson),
-              let callData = contract.method(functionName, parameters: args, extraData: nil) else {
+              let callData = try? contract.method(functionName, parameters: args, extraData: nil) else {
             logger.utils.notice("This abiJson cannot be parsed or the given contract method cannot be called with the given parameters")
             return nil
         }
