@@ -94,7 +94,7 @@ public struct Utils {
                               signature: String,
                               webauthn: WebAuthnData) throws -> Bool {
         do {
-            let rawClientData = webauthn.clientDataJSON.bytes
+            let rawClientData = try webauthn.clientDataJSON.bytes
             let clientData = try JSONDecoder().decode(CollectedClientData.self, from: Data(rawClientData))
             let rawAuthenticatorData = try HexUtils.hexToBytes(hex: webauthn.authenticatorData)
             let authenticatorData = try AuthenticatorData(bytes: rawAuthenticatorData)
