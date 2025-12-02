@@ -31,7 +31,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/valpackett/SwiftCBOR.git", .upToNextMinor(from: "0.4.7")),
-        .package(url: "https://github.com/web3swift-team/web3swift.git", .upToNextMinor(from: "3.2.2"))
+        .package(url: "https://github.com/superbigroach/web3swift.git", .upToNextMajor(from: "3.2.2"))
     ],
     targets: [
         .target(

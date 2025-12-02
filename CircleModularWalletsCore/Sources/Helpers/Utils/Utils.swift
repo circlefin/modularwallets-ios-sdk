@@ -70,7 +70,7 @@ public struct Utils {
                                           abiJson: String,
                                           args: [Any]) -> String? {
         guard let contract = try? EthereumContract(abiJson),
-              let callData = contract.method(functionName, parameters: args, extraData: nil) else {
+              let callData = try? contract.method(functionName, parameters: args, extraData: nil) else {
             logger.utils.notice("This abiJson cannot be parsed or the given contract method cannot be called with the given parameters")
             return nil
         }
@@ -94,7 +94,7 @@ public struct Utils {
                               signature: String,
                               webauthn: WebAuthnData) throws -> Bool {
         do {
-            let rawClientData = webauthn.clientDataJSON.bytes
+            let rawClientData = try webauthn.clientDataJSON.bytes
             let clientData = try JSONDecoder().decode(CollectedClientData.self, from: Data(rawClientData))
             let rawAuthenticatorData = try HexUtils.hexToBytes(hex: webauthn.authenticatorData)
             let authenticatorData = try AuthenticatorData(bytes: rawAuthenticatorData)
