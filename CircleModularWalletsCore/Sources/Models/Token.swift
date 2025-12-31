@@ -57,18 +57,6 @@ public enum BaseToken: String {
     }
 }
 
-public enum MonadToken: String {
-    case USDC
-
-    public var chainId: Int {
-        return Monad.chainId
-    }
-
-    public var name: String {
-        return "Monad_\(self.rawValue)"
-    }
-}
-
 public enum OptimismToken: String {
     case USDC
     case OP
@@ -120,18 +108,6 @@ public enum ArbitrumSepoliaToken: String {
     }
 }
 
-public enum ArcTestnetToken: String {
-    case USDC
-
-    public var chainId: Int {
-        return ArcTestnet.chainId
-    }
-
-    public var name: String {
-        return "ArcTestnet_\(self.rawValue)"
-    }
-}
-
 public enum AvalancheFujiToken: String {
     case USDC
 
@@ -153,18 +129,6 @@ public enum BaseSepoliaToken: String {
 
     public var name: String {
         return "BaseSepolia_\(self.rawValue)"
-    }
-}
-
-public enum MonadTestnetToken: String {
-    case USDC
-
-    public var chainId: Int {
-        return MonadTestnet.chainId
-    }
-
-    public var name: String {
-        return "MonadTestnet_\(self.rawValue)"
     }
 }
 
