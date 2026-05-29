@@ -56,7 +56,7 @@ class WebAuthnCircleSmartAccountDelegate: CircleSmartAccountDelegate {
             publicKey: owner.getAddress(),
             hasUserOpGas: hasUserOpGas
         )
-        
+
         return encodePacked
     }
 }

@@ -28,7 +28,8 @@ public class BundlerClient: Client, BundlerRpcApi, PublicRpcApi {
     /// - Parameters:
     ///   - account: The Account to use for User Operation execution.
     ///   - calls: The calls to execute in the User Operation.
-    ///   - paymaster: Sets Paymaster configuration for the User Operation.
+    ///   - paymaster: Sets Paymaster configuration for the User Operation. Defaults to `nil`; pass
+    ///     `Paymaster.True()` or `Paymaster.Client(...)` explicitly when the operation should be sponsored.
     ///   - estimateFeesPerGas: Prepares fee properties for the User Operation request.
     ///
     /// - Returns: The estimated gas values for the User Operation.
@@ -86,7 +87,8 @@ public class BundlerClient: Client, BundlerRpcApi, PublicRpcApi {
     ///   - account: The Account to use for User Operation execution.
     ///   - calls: The calls to execute in the User Operation.
     ///   - partialUserOp: The partial User Operation to be completed.
-    ///   - paymaster: Sets Paymaster configuration for the User Operation.
+    ///   - paymaster: Sets Paymaster configuration for the User Operation. Defaults to `nil`; pass
+    ///     `Paymaster.True()` or `Paymaster.Client(...)` explicitly when the operation should be sponsored.
     ///   - estimateFeesPerGas: Prepares fee properties for the User Operation request.
     ///
     /// - Returns: The prepared User Operation.
@@ -106,10 +108,16 @@ public class BundlerClient: Client, BundlerRpcApi, PublicRpcApi {
     ///   - account: The Account to use for User Operation execution.
     ///   - calls: The calls to execute in the User Operation.
     ///   - partialUserOp: The partial User Operation to be completed.
-    ///   - paymaster: Sets Paymaster configuration for the User Operation.
+    ///   - paymaster: Sets Paymaster configuration for the User Operation. Defaults to `nil`; pass
+    ///     `Paymaster.True()` or `Paymaster.Client(...)` explicitly when the operation should be sponsored.
     ///   - estimateFeesPerGas: Prepares fee properties for the User Operation request.
     ///
-    /// - Returns: The hash of the sent User Operation.
+    /// - Returns: The User Operation hash of the sent User Operation.
+    ///
+    /// This is not the on-chain transaction hash. Use
+    /// ``waitForUserOperationReceipt(userOpHash:pollingInterval:retryCount:timeout:)`` with the returned User
+    /// Operation hash and read ``GetUserOperationReceiptResult/UserOperationReceipt/transactionHash`` from the
+    /// receipt after the operation is included on chain.
     public func sendUserOperation(
         account: SmartAccount,
         calls: [EncodeCallDataArg]?,

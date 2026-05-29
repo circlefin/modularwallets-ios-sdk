@@ -594,18 +594,49 @@ extension Utils {
         case noResult
     }
 
+    private final class UncheckedSendableBox<Value>: @unchecked Sendable {
+        let value: Value
+
+        init(_ value: Value) {
+            self.value = value
+        }
+    }
+
+    private final class PollAttemptResolver<Value>: @unchecked Sendable {
+        private let lock = NSLock()
+        private var didResume = false
+
+        func resume(_ continuation: CheckedContinuation<UncheckedSendableBox<Value?>, any Error>,
+                    with result: Result<UncheckedSendableBox<Value?>, any Error>) {
+            lock.lock()
+            guard !didResume else {
+                lock.unlock()
+                return
+            }
+            didResume = true
+            lock.unlock()
+            switch result {
+            case let .success(value):
+                continuation.resume(returning: value)
+            case let .failure(error):
+                continuation.resume(throwing: error)
+            }
+        }
+    }
+
     ///  Starts polling for a result by repeatedly executing a given asynchronous block.
     ///
     /// - Parameters:
     ///   - pollingInterval: The time interval in milliseconds between each polling attempt.
     ///   - retryCount: The maximum number of times to retry polling if a result is not obtained.
-    ///   - timeout: An optional timeout period in seconds. If provided, the polling will stop if this duration is exceeded.
-    ///   - block: An asynchronous closure that returns a value of type T? which will be polled repeatedly.
+    ///   - timeout: An optional timeout period in milliseconds. If provided, the polling will stop if this duration is exceeded.
+    ///   - block: An asynchronous closure that returns a value of type T which will be polled repeatedly.
     ///
     /// - Throws:
-    ///   - PollingError.timeoutError if the polling operation exceeds the specified timeout period.
+    ///   - PollingError.timeout if the polling operation exceeds the specified timeout period.
+    ///   - PollingError.noResult if polling exhausts all retry attempts before a result is obtained.
     ///
-    /// - Returns: An optional value of type T? if a result is obtained within the allowed polling attempts and timeout period.
+    /// - Returns: A value of type T if a result is obtained within the allowed polling attempts and timeout period.
     static func startPolling<T>(pollingInterval: Int,
                                 retryCount: Int,
                                 timeout: Int?,
@@ -614,23 +645,79 @@ extension Utils {
         logger.utils.debug("Start polling, retryCount: \(retryCount)")
 
         var currentCount = 0
-        let startTime = Date() // Record the start time
+        // Use a monotonic clock without relying on system boot time APIs that require privacy reasons.
+        let clock = ContinuousClock()
+        let deadline = timeout.map { clock.now.advanced(by: .milliseconds(Int64($0))) }
+        let pollingDelay = Duration.milliseconds(Int64(pollingInterval))
+
+        func hasTimedOut() -> Bool {
+            guard let deadline else { return false }
+            return clock.now >= deadline
+        }
+
+        func pollOnce() async throws -> T? {
+            guard let deadline else {
+                return try? await block()
+            }
+
+            if hasTimedOut() {
+                throw PollingError.timeout
+            }
+
+            // Race each poll against the absolute deadline so callers observe the documented
+            // timeout promptly even if the in-flight request is slow to return. If the work
+            // finishes after timeout, PollAttemptResolver ignores the late completion.
+            let resolver = PollAttemptResolver<T>()
+            let work = UncheckedSendableBox(block)
+
+            let boxedResult = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<UncheckedSendableBox<T?>, any Error>) in
+                let timeoutTask = Task<Void, Never> {
+                    do {
+                        try await Task.sleep(until: deadline, clock: clock)
+                        resolver.resume(continuation, with: .failure(PollingError.timeout))
+                    } catch {
+                        return
+                    }
+                }
+
+                Task<Void, Never> {
+                    let result = try? await work.value()
+                    timeoutTask.cancel()
+                    resolver.resume(continuation, with: .success(UncheckedSendableBox(result)))
+                }
+            }
+            return boxedResult.value
+        }
 
         while currentCount < retryCount {
+            if hasTimedOut() {
+                throw PollingError.timeout
+            }
+
             logger.utils.debug("Polling currentCount: \(currentCount)")
 
-            if let result = try? await block() {
+            if let result = try await pollOnce() {
+                // Keep the timeout as a strict overall budget, even if the latest poll returns
+                // after the deadline, so callers do not observe a stale success past timeout.
+                if hasTimedOut() {
+                    throw PollingError.timeout
+                }
                 logger.utils.debug("Polling got result: \(currentCount)")
                 return result
             }
 
-            // Check if the timeout has been exceeded
-            if let timeout = timeout, Date().timeIntervalSince(startTime) > Double(timeout) {
+            if hasTimedOut() {
                 throw PollingError.timeout
             }
 
             currentCount += 1
-            try? await Task.sleep(nanoseconds: UInt64(pollingInterval) * 1_000_000) // Convert milliseconds to nanoseconds
+            let nextPollTime = clock.now.advanced(by: pollingDelay)
+            let sleepUntil = deadline.map { min(nextPollTime, $0) } ?? nextPollTime
+            try? await Task.sleep(until: sleepUntil, clock: clock)
+
+            if hasTimedOut() {
+                throw PollingError.timeout
+            }
         }
 
         throw PollingError.noResult

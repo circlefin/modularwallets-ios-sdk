@@ -33,6 +33,18 @@ public enum ArbitrumToken: String {
     }
 }
 
+public enum ArcToken: String {
+    case USDC
+
+    public var chainId: Int {
+        return Arc.chainId
+    }
+
+    public var name: String {
+        return "Arc_\(self.rawValue)"
+    }
+}
+
 public enum AvalancheToken: String {
     case USDC
 
