@@ -26,7 +26,7 @@ struct BaseErrorParameters {
 }
 
 @_documentation(visibility: private)
-public class BaseError: Error, CustomStringConvertible, @unchecked Sendable {
+public class BaseError: Error, CustomStringConvertible, LocalizedError, @unchecked Sendable {
 
     public let shortMessage: String
     public let details: String?
@@ -35,14 +35,30 @@ public class BaseError: Error, CustomStringConvertible, @unchecked Sendable {
 
     public private(set) var description: String = ""
     public let cause: Error?
+    // Keep localizedDescription user-facing while description remains the full debug output.
+    public var errorDescription: String? {
+        BaseError.buildMessage(
+            shortMessage: shortMessage,
+            details: details,
+            metaMessages: nil,
+            name: name
+        )
+    }
 
     init(shortMessage: String, args: BaseErrorParameters = BaseErrorParameters()) {
+        let details = BaseError.getDetails(args: args)
         self.shortMessage = shortMessage
-        self.details = BaseError.getDetails(args: args)
+        self.details = details
         self.metaMessages = args.metaMessages
         self.name = args.name
 
-        self.description = BaseError.buildMessage(shortMessage: shortMessage, args: args)
+        self.description = BaseError.buildMessage(
+            shortMessage: shortMessage,
+            details: details,
+            metaMessages: args.metaMessages,
+            name: args.name,
+            includeMetaMessages: true
+        )
         self.cause = args.cause
     }
 
@@ -56,15 +72,19 @@ public class BaseError: Error, CustomStringConvertible, @unchecked Sendable {
         }
     }
 
-    static func buildMessage(shortMessage: String, args: BaseErrorParameters) -> String {
+    static func buildMessage(shortMessage: String,
+                             details: String?,
+                             metaMessages: [String]?,
+                             name: String,
+                             includeMetaMessages: Bool = false) -> String {
         var messageParts: [String] = []
-        messageParts.append("\(args.name): \(shortMessage.isEmpty ? "An error occurred." : shortMessage)")
+        messageParts.append("\(name): \(shortMessage.isEmpty ? "An error occurred." : shortMessage)")
 
         if let messageLastPart = messageParts.last,  !messageLastPart.hasSuffix("\n") {
             messageParts[messageParts.count - 1] += "\n"
         }
 
-        if let metaMessages = args.metaMessages {
+        if includeMetaMessages, let metaMessages {
             messageParts.append(contentsOf: metaMessages)
         }
 
@@ -72,7 +92,7 @@ public class BaseError: Error, CustomStringConvertible, @unchecked Sendable {
             messageParts[messageParts.count - 1] += "\n"
         }
 
-        if let details = getDetails(args: args) {
+        if let details {
             messageParts.append("Details: \(details)")
         }
 

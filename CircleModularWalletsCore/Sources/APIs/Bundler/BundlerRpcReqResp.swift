@@ -204,7 +204,12 @@ public struct GetUserOperationReceiptResult: Codable {
     // https://github.com/wevm/viem/blob/e7431e88b0e8b83719c91f5a6a57da1a10076a1c/src/account-abstraction/types/userOperation.ts#L167
     public struct UserOperationReceipt: Codable {
 
-        /// Hash of this transaction.
+        /// Hash of the transaction that included this user operation.
+        ///
+        /// The bundler is expected to include this value once a user operation receipt
+        /// is available. The field remains optional so the SDK can decode incomplete or
+        /// non-standard bundler responses; treat `nil` as a receipt returned without an
+        /// on-chain transaction hash.
         public let transactionHash: String?
 
         /// Index of this transaction in the block.
