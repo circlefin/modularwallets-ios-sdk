@@ -83,6 +83,18 @@ public struct WebAuthnCredential: RpRpcApi, Sendable {
     /// The relying party identifier.
     public let rpId: String
 
+    /// Creates a credential from persisted fields.
+    ///
+    /// Mirrors the Android SDK's public memberwise constructor so an app that has
+    /// stored `id`, `publicKey`, `raw`, and `rpId` (e.g. from a previous launch)
+    /// can restore an existing wallet without triggering a new login ceremony.
+    public init(id: String, publicKey: String, raw: PublicKeyCredential, rpId: String) {
+        self.id = id
+        self.publicKey = publicKey
+        self.raw = raw
+        self.rpId = rpId
+    }
+
     static func register(transport: Transport,
                          userName: String) async throws -> WebAuthnCredential {
         do {
